@@ -79,20 +79,22 @@ class WecantrackApp {
     }
 
     /**
-     * Responsible for checking if the website can redirect through &afflink parameter. (afflink is default)
-     * Shouldn't be used if auto tagging is enabled.
+     * Responsible for checking if the website can redirect through &afflink parameter.
      * 
      * @return bool 
      */
     private function can_redirect_through_parameter() : bool {
-        if (! isset($this->options_storage['can_redirect_through_parameter']) || $this->options_storage['can_redirect_through_parameter'] === 1) {
-            return true;
-        }
-
-        // if type=session is not found in the snippet, then we have to redirect through parameter
+        // if not using auto-tagging and there is no explicit setting for we can redirect through parameter then we can redirect
         // else we might break the redirects
         if ($this->snippet && strpos($this->snippet, 'type=session') === false) {
             return true;
+        }
+
+        // default setting is false
+        if (isset($this->options_storage['can_redirect_through_parameter'])) {
+            if ($this->options_storage['can_redirect_through_parameter'] == 1) {
+                return true;
+            }
         }
 
         return false;
@@ -204,7 +206,7 @@ class WecantrackApp {
     public function load_hooks() {
         add_filter('wp_redirect', array($this, 'redirect_default'), 99);
 
-        if (!isset($this->options_storage['include_script']) || $this->options_storage['include_script'] === true) {
+        if (!isset($this->options_storage['include_script']) || $this->options_storage['include_script'] == true) {
             add_action('wp_head', array($this, 'insert_snippet'));
         }
     }

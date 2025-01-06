@@ -6,17 +6,17 @@
 Plugin Name: WeCanTrack
 Plugin URI: https://wecantrack.com/wordpress
 Description: Integrate all you affiliate sales in Google Analytics, Google Ads, Facebook, Data Studio and more!
-Version: 1.4.9
+Version: 1.5.0
 Author: wecantrack.com
 Author URI: https://wecantrack.com
-Requires PHP: 7.3
+Requires PHP: 7.4
 License: GPLv3
 Text Domain: wecantrack
 */
 
 if(!defined('ABSPATH')) { die('You are not allowed to call this page directly.'); }
 
-define('WECANTRACK_VERSION', '1.4.9');
+define('WECANTRACK_VERSION', '1.5.0');
 define('WECANTRACK_PLUGIN_NAME', 'wecantrack');
 define('WECANTRACK_PATH', WP_PLUGIN_DIR.'/'.WECANTRACK_PLUGIN_NAME);
 define('WECANTRACK_URL', plugins_url($path = '/'.WECANTRACK_PLUGIN_NAME));
@@ -47,6 +47,7 @@ if (is_admin() || defined('WP_CLI')) {
 register_activation_hook(__FILE__, 'wecantrack_plugin_activation');
 register_deactivation_hook(__FILE__, 'wecantrack_plugin_deactivation');
 register_uninstall_hook(__FILE__, 'wecantrack_plugin_uninstall');
+add_action('upgrader_process_complete', 'wecantrack_plugin_upgraded', 10, 2);
 
 function wecantrack_plugin_activation()
 {
@@ -83,4 +84,39 @@ function wecantrack_plugin_uninstall()
     delete_option('wecantrack_website_options');
     delete_option('wecantrack_version');
     delete_option('wecantrack_storage');
+}
+
+function wecantrack_plugin_upgraded($upgrader_object, $options) {
+    $current_plugin_path_name = plugin_basename( __FILE__ );
+    
+    if ($options['action'] == 'upgrade' && $options['type'] == 'plugin') {
+       foreach($options['plugins'] as $each_plugin) {
+          if ($each_plugin == $current_plugin_path_name) {
+            $api_key = get_option('wecantrack_api_key');
+
+            if (empty($api_key)) {
+                return;
+            }
+
+            // refetch the wecantrack script
+            $domainURL = home_url();
+            try {
+                WecantrackHelper::update_tracking_code($api_key, $domainURL);
+                WecantrackHelper::update_user_website_information($api_key, $domainURL);
+            } catch (\Exception $e) {
+                error_log('WCT Plugin: Error occurred during plugin upgrade. Message: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
+            }
+
+            // set can_redirect_through_parameter to true if include_script is false and can_redirect_through_parameter is not set
+            $wecantrack_storage = json_decode(get_option('wecantrack_storage'), true);
+
+            if (!isset($wecantrack_storage['can_redirect_through_parameter']) || $wecantrack_storage['can_redirect_through_parameter'] === null) {
+                if (isset($wecantrack_storage['include_script']) && $wecantrack_storage['include_script'] == false) {
+                    $wecantrack_storage['can_redirect_through_parameter'] = true;
+                    update_option('wecantrack_storage', json_encode($wecantrack_storage));    
+                }
+            }
+          }
+       }
+    }
 }

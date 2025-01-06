@@ -2,9 +2,9 @@
 Contributors: wecantrack
 Tags: affiliate, publisher, analytics, conversion tracking, sale attribution, dashboard, subid, google analytics, link, google ads, facebook, data studio, we can track, wecantrack, tracking tool
 Requires at least: 4.6
-Tested up to: 6.4
-Requires PHP: 7.3
-Stable tag: 1.4.9
+Tested up to: 6.7.1
+Requires PHP: 7.4
+Stable tag: 1.5.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -57,33 +57,38 @@ No, please contact support@wecantrack.com if you want us to support this.
 
 == Changelog ==
 
+= 1.5.0 - 6th January 2025 =
+ * Support WP 6.7.1
+ * Sync wct script when upgrading plugin
+ * Set afflink parameter off by default
+
 = 1.4.9 - 29th May 2024 =
-* Do not run WCT on a cron job
+ * Do not run WCT on a cron job
 
 = 1.4.8 - 20th March 2024 =
-* Redirect Through Parameter fix
+ * Redirect Through Parameter fix
 
 = 1.4.7 - 28th December 2023 =
-* New setting added to disable redirect through parameter
+ * New setting added to disable redirect through parameter
 
 = 1.4.6 - 16th October 2023 =
-* Detect Elementor's & Divi's page builder mode
+ * Detect Elementor's & Divi's page builder mode
 
 = 1.4.5 - 17th August 2023 =
-* Do not log relative URLs as faulty
-* Wordpress 6.3 support
+ * Do not log relative URLs as faulty
+ * Wordpress 6.3 support
 
 = 1.4.4 - 10th January 2023 =
-* Fixed visual bug for disable wct.js script option
+ * Fixed visual bug for disable wct.js script option
 
 = 1.4.3 - 21st December 2022 =
-* New option to disable wct.js script
+ * New option to disable wct.js script
 
 = 1.4.2 - 10th October 2022 =
-* Made thrive page builder detection pattern more greedy
+ * Made thrive page builder detection pattern more greedy
 
 = 1.4.1 - 31st August 2022 =
-* Improved affiliate url pattern matching
+ * Improved affiliate url pattern matching
 
 = 1.4.0 - 16th March 2022 =
  * Working on supporting WP multi-site. Better error messages.

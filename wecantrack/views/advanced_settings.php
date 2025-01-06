@@ -2,6 +2,13 @@
 //nonce
 $wecantrack_nonce = wp_create_nonce('wecantrack_nonce');
 $wecantrack_storage = json_decode(get_option('wecantrack_storage'), true);
+$wecantrack_script = get_option('wecantrack_snippet');
+// $wecantrack_script = preg_replace('/\s+/', '', $wecantrack_script);
+
+$wecantrack_auto_tagging = false;
+if (strpos($wecantrack_script, "'auto_tagging' : true") !== false) {
+    $wecantrack_auto_tagging = true;
+}
 
 //plugins status
 $wecantrack_referrer_cookie_enabled = $wecantrack_referrer_cookie_disabled = '';
@@ -15,7 +22,7 @@ if (get_option('wecantrack_referrer_cookie_status')) {
 $wecantrack_ssl_status_enabled = empty($wecantrack_storage['disable_ssl']) ? 'checked="checked"' : null;
 $wecantrack_ssl_status_disabled = !empty($wecantrack_storage['disable_ssl']) ? 'checked="checked"' : null;
 
-if (! isset($wecantrack_storage['can_redirect_through_parameter']) || $wecantrack_storage['can_redirect_through_parameter'] == true) {
+if (isset($wecantrack_storage['can_redirect_through_parameter']) && $wecantrack_storage['can_redirect_through_parameter'] == true) {
     $wecantrack_can_redirect_through_parameter_enabled = 'checked="checked"';
     $wecantrack_can_redirect_through_parameter_disabled = null;
 } else {
@@ -144,9 +151,33 @@ if (isset($wecantrack_storage['include_script'])) {
                             </p>
                         </fieldset>
 
-                        <p class="description">With auto-tagging enabled, the need to redirect through the 'afflink' parameter may become unnecessary, allowing you to disable this feature from your website.</p>
+                        <p class="description">With auto-tagging enabled, the need to redirect through the 'afflink' parameter becomes irrelevant, this setting is now disabled by standard. We recommend to keep using auto-tagging since the afflink parameter can potentially be exploited by external parties to execute unauthorised redirects if they properly replicate the link and data parameter conditions.</p>
                     </td>
                 </tr>
+
+                <!-- <tr class="wecantrack-plugin-enforce-turning-off-afflink-parameter">
+                    <th scope="row">
+                        <label for=""><?php echo esc_html__('Enforce turning off Redirect Through Parameter even when `Include WCT Script` is disabled', 'wecantrack'); ?></label>
+                    </th>
+
+                    <td>
+                        <fieldset>
+                            <p>
+                                <label>
+                                    <input name="wecantrack_enforce_turning_off_afflink_parameter" type="radio" value="1">
+                                    <?php echo esc_html__('Enable', 'wecantrack'); ?>
+                                </label>
+                                &nbsp;
+                                <label>
+                                    <input name="wecantrack_enforce_turning_off_afflink_parameter" type="radio" value="0">
+                                    <?php echo esc_html__('Disable', 'wecantrack'); ?>
+                                </label>
+                            </p>
+                        </fieldset>
+
+                        <p class="description">please ensure that your manually placed JS tag has auto-tagging enabled, else this setting can break your outgoing URLs.</p>
+                    </td>
+                </tr> -->
 
                 </tbody>
             </table>
