@@ -1,10 +1,10 @@
 === Affiliate Sales in Google Analytics and other tools ===
 Contributors: wecantrack
-Tags: affiliate, publisher, analytics, conversion tracking, sale attribution, dashboard, subid, google analytics, link, google ads, facebook, data studio, we can track, wecantrack, tracking tool
+Tags: affiliate conversion tracking, google ads integration, google analytics integration, affiliate dashboard, subid tracking, publisher, analytics, sale attribution, dashboard, google analytics, link, facebook, data studio, we can track, wecantrack, tracking tool
 Requires at least: 4.6
 Tested up to: 6.7.1
 Requires PHP: 7.4
-Stable tag: 1.5.0
+Stable tag: 1.5.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -56,6 +56,10 @@ No, please contact support@wecantrack.com if you want us to support this.
 == Upgrade Notice ==
 
 == Changelog ==
+
+= 1.5.1 - 27th February 2025 =
+ * Disable cookie referrer by default
+ * Change plugin title
 
 = 1.5.0 - 6th January 2025 =
  * Support WP 6.7.1

@@ -66,7 +66,7 @@ class WecantrackAdmin {
             add_option('wecantrack_version');
         }
         if(!get_option('wecantrack_referrer_cookie_status')) {
-            add_option('wecantrack_referrer_cookie_status', 1);
+            add_option('wecantrack_referrer_cookie_status', 0);
         }
         if(!get_option('wecantrack_storage')) {
             add_option('wecantrack_storage');
