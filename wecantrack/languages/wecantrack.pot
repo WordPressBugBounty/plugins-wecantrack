@@ -1,20 +1,21 @@
-# Copyright (C) 2025 wecantrack.com
+# Copyright (C) 2025 WeCanTrack
 # This file is distributed under the same license as the WeCanTrack plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: WeCanTrack 2.0.0\n"
+"Project-Id-Version: WeCanTrack 2.0.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wecantrack\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-06-17T07:44:25+00:00\n"
+"POT-Creation-Date: 2025-06-24T19:00:31+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.4.0\n"
 "X-Domain: wecantrack\n"
 
 #. Plugin Name of the plugin
+#. Author of the plugin
 msgid "WeCanTrack"
 msgstr ""
 
@@ -23,11 +24,7 @@ msgid "https://wecantrack.com/wordpress"
 msgstr ""
 
 #. Description of the plugin
-msgid "Integrate all you affiliate sales in Google Analytics, Google Ads, Facebook, Data Studio and more!"
-msgstr ""
-
-#. Author of the plugin
-msgid "wecantrack.com"
+msgid "Integrate all your affiliate sales into Google Analytics, Google Ads, Facebook, Data Studio, and more!"
 msgstr ""
 
 #. Author URI of the plugin
@@ -43,65 +40,59 @@ msgstr ""
 msgid "The request could not be validated. Please refresh the page and try again."
 msgstr ""
 
-#: views/advanced_settings.php:44
+#: views/advanced_settings.php:32
 msgid "Include WCT Script"
 msgstr ""
 
-#: views/advanced_settings.php:52
-#: views/advanced_settings.php:76
-#: views/advanced_settings.php:100
-#: views/advanced_settings.php:147
+#: views/advanced_settings.php:40
+#: views/advanced_settings.php:64
+#: views/advanced_settings.php:88
 #: views/settings.php:73
 msgid "Enable"
 msgstr ""
 
-#: views/advanced_settings.php:57
-#: views/advanced_settings.php:81
-#: views/advanced_settings.php:105
-#: views/advanced_settings.php:124
-#: views/advanced_settings.php:152
+#: views/advanced_settings.php:45
+#: views/advanced_settings.php:69
+#: views/advanced_settings.php:93
+#: views/advanced_settings.php:112
 #: views/settings.php:78
 msgid "Disable"
 msgstr ""
 
-#: views/advanced_settings.php:68
+#: views/advanced_settings.php:56
 msgid "Use WCT referrer cookie"
 msgstr ""
 
-#: views/advanced_settings.php:92
+#: views/advanced_settings.php:80
 msgid "Verify SSL"
 msgstr ""
 
-#: views/advanced_settings.php:116
+#: views/advanced_settings.php:104
 msgid "Redirect Through Parameter (afflink)"
 msgstr ""
 
-#: views/advanced_settings.php:139
-msgid "Enforce turning off Redirect Through Parameter even when `Include WCT Script` is disabled"
-msgstr ""
-
-#: views/advanced_settings.php:165
-#: views/settings.php:103
+#: views/advanced_settings.php:128
+#: views/settings.php:106
 msgid "Update & Save"
 msgstr ""
 
-#: views/redirect_page.php:43
+#: views/redirect_page.php:45
 msgid "Redirect text"
 msgstr ""
 
-#: views/redirect_page.php:47
+#: views/redirect_page.php:49
 msgid "You are being directed to the merchant, one moment please"
 msgstr ""
 
-#: views/redirect_page.php:53
+#: views/redirect_page.php:55
 msgid "Insert custom HTML in the header"
 msgstr ""
 
-#: views/redirect_page.php:62
+#: views/redirect_page.php:64
 msgid "Second delay before redirect"
 msgstr ""
 
-#: views/redirect_page.php:72
+#: views/redirect_page.php:74
 msgid "Only use the Redirect Page when URL contains (optional)"
 msgstr ""
 
@@ -141,64 +132,84 @@ msgstr ""
 msgid "Plugin status"
 msgstr ""
 
-#: views/settings.php:87
-msgid "Enable plugin when URL contains"
+#: views/settings.php:82
+msgid "Enable or disable the tracking plugin entirely."
 msgstr ""
 
 #: views/settings.php:90
+msgid "Enable plugin when URL contains"
+msgstr ""
+
+#: views/settings.php:93
 msgid "e.g. ?wct=on"
 msgstr ""
 
-#: views/settings.php:92
+#: views/settings.php:95
 msgid "Place a URL, slug or URL parameter for which our plugin will be functional for the user browser session only."
 msgstr ""
 
-#: views/settings.php:114
+#: views/settings.php:117
 msgid "If you're experiencing any bugs caused by this plugin, disable the plugin and contact us at support@wecantrack.com"
 msgstr ""
 
-#: WecantrackAdmin.php:300
+#: WecantrackAdmin.php:304
 msgid "Something went wrong with the request"
 msgstr ""
 
-#: WecantrackAdmin.php:301
+#: WecantrackAdmin.php:305
 msgid "Added at least 1 active network account"
 msgstr ""
 
-#: WecantrackAdmin.php:302
+#: WecantrackAdmin.php:306
 msgid "You have not added at least 1 active network account. To add a network, click here."
 msgstr ""
 
 #. translators: %s: The website URL
-#: WecantrackAdmin.php:304
+#: WecantrackAdmin.php:308
 msgid "Website %s added"
 msgstr ""
 
 #. translators: %s: The website URL
-#: WecantrackAdmin.php:306
+#: WecantrackAdmin.php:310
 msgid "You have not added the website %s to our platform. To add the website, click here."
 msgstr ""
 
-#: WecantrackAdmin.php:307
+#: WecantrackAdmin.php:311
 msgid "verified"
 msgstr ""
 
-#: WecantrackAdmin.php:308
+#: WecantrackAdmin.php:312
 msgid "Invalid API Key"
 msgstr ""
 
-#: WecantrackAdmin.php:309
+#: WecantrackAdmin.php:313
 msgid "Invalid Request"
 msgstr ""
 
-#: WecantrackAdmin.php:310
+#: WecantrackAdmin.php:314
 msgid "Valid API Key"
 msgstr ""
 
-#: WecantrackAdmin.php:311
+#: WecantrackAdmin.php:315
 msgid "Your changes have been saved"
 msgstr ""
 
-#: WecantrackAdmin.php:312
+#: WecantrackAdmin.php:316
 msgid "Something went wrong."
+msgstr ""
+
+#. translators: %s is the website URL or identifier.
+#: WecantrackHelper.php:64
+#: WecantrackHelper.php:116
+msgid "Website `%s` not found in your We Can Track account"
+msgstr ""
+
+#. translators: %s is the full error message or error code from the request.
+#: WecantrackHelper.php:72
+msgid "Bad request when updating website information %s"
+msgstr ""
+
+#. translators: %s is the site URL or identifier.
+#: WecantrackHelper.php:124
+msgid "Bad request when fetching website %s"
 msgstr ""

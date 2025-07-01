@@ -1,22 +1,16 @@
 <?php
 //nonce
-$wecantrack_nonce = wp_create_nonce('wecantrack_nonce');
+$wecantrack_nonce = wp_create_nonce('wecantrack_form_nonce');
 
 //plugins status
-$wecantrack_plugin_status_enabled = '';
-$wecantrack_plugin_status_disabled = '';
-if (get_option('wecantrack_plugin_status')) {
-    $wecantrack_plugin_status_enabled = 'checked="checked"';
-} else {
-    $wecantrack_plugin_status_disabled = 'checked="checked"';
-}
+$wecantrack_plugin_status = get_option('wecantrack_plugin_status') ? true : false;
 ?>
 
 <div class="wrap">
     <div id="wecantrack_loading"></div>
     <div class="wecantrack_body">
         <div class="wecantrack_hero_image">
-            <img src="<?php echo WECANTRACK_URL . '/images/wct-logo-normal.svg' ?>" alt="wct-logo">
+            <img src="<?php echo esc_url(WECANTRACK_URL . '/images/wct-logo-normal.svg') ?>" alt="wct-logo">
         </div>
         <h1>WeCanTrack</h1>
 
@@ -28,11 +22,11 @@ if (get_option('wecantrack_plugin_status')) {
             <!-- 'If you are making use of Caching plugins, please make sure to exclude your redirect URLs from caching.' -->
         </ul>
 
-        <form id="wecantrack_ajax_form" action="<?php echo WECANTRACK_PATH . '.php' ?>" method="post">
+        <form id="wecantrack_ajax_form" data-ajax="true" method="post">
             <input type="hidden" name="action" value="wecantrack_form_response">
             <input type="hidden" id="wecantrack_submit_type" name="wecantrack_submit_type" value="verify">
 
-            <input type="hidden" name="wecantrack_form_nonce" value="<?php echo $wecantrack_nonce ?>">
+            <input type="hidden" name="wecantrack_form_nonce" value="<?php echo esc_attr($wecantrack_nonce) ?>">
 
             <table class="form-table" role="presentation">
                 <tbody>
@@ -41,7 +35,7 @@ if (get_option('wecantrack_plugin_status')) {
                         <label for="wecantrack_api_key"><?php echo esc_html__('API Key', 'wecantrack'); ?></label>
                     </th>
                     <td>
-                        <input name="wecantrack_api_key" type="text" id="wecantrack_api_key" placeholder="<?php esc_html__('Enter API Key', 'wecantrack') ?>" value="<?php echo get_option('wecantrack_api_key') ?>" style="width:300px;" required="" autocomplete="off">
+                        <input id="wecantrack_api_key" name="wecantrack_api_key" type="text" placeholder="<?php echo esc_html__('Enter API Key', 'wecantrack') ?>" value="<?php echo esc_attr(get_option('wecantrack_api_key')) ?>" style="width:300px;" required="" autocomplete="off" autocorrect="off" spellcheck="false">
                         <input type="submit" name="submit" id="submit-verify" class="button button-primary" value="<?php echo esc_html__('Verify key', 'wecantrack') ?>">
                         <span class="hidden dashicons dashicons-update animated-spin wecantrack_animation_rotate" style="margin-top:5px;"></span>
                         <p class="description">
@@ -61,8 +55,8 @@ if (get_option('wecantrack_plugin_status')) {
                         <label for="wecantrack_api_key"><?php echo esc_html__('Requirements', 'wecantrack'); ?></label>
                     </th>
                     <td>
-                        <p class="wecantrack-preq-network-account"><i class="dashicons"></i> <span></span></p>
-                        <p class="wecantrack-preq-feature"><i class="dashicons"></i> <span></span></p>
+                        <p class="wecantrack-preq-network-account"><i class="dashicons dashicons-no"></i> <span></span></p>
+                        <p class="wecantrack-preq-feature"><i class="dashicons dashicons-no"></i> <span></span></p>
                         <p class="description">
                             <?php echo esc_html__('In order to continue with the setup all requirements have to be met', 'wecantrack'); ?>
                         </p>
@@ -75,14 +69,17 @@ if (get_option('wecantrack_plugin_status')) {
                         <fieldset>
                             <p>
                                 <label>
-                                    <input name="wecantrack_plugin_status" type="radio" value="1" <?php echo $wecantrack_plugin_status_enabled ?>>
+                                    <input name="wecantrack_plugin_status" type="radio" value="1" <?php checked($wecantrack_plugin_status, true); ?>>
                                     <?php echo esc_html__('Enable', 'wecantrack'); ?>
                                 </label>
                                 <br />
                                 <label>
-                                    <input name="wecantrack_plugin_status" type="radio" value="0" <?php echo $wecantrack_plugin_status_disabled ?>>
+                                    <input name="wecantrack_plugin_status" type="radio" value="0" <?php checked($wecantrack_plugin_status, false) ?>>
                                     <?php echo esc_html__('Disable', 'wecantrack'); ?>
                                 </label>
+                            </p>
+                            <p class="description">
+                                <?php echo esc_html__('Enable or disable the tracking plugin entirely.', 'wecantrack'); ?>
                             </p>
                         </fieldset>
                     </td>
@@ -93,7 +90,7 @@ if (get_option('wecantrack_plugin_status')) {
                         <label for="wecantrack_session_enabler"><?php echo esc_html__('Enable plugin when URL contains', 'wecantrack'); ?></label>
                     </th>
                     <td>
-                        <input name="wecantrack_session_enabler" type="text" id="wecantrack_session_enabler" placeholder="<?php echo esc_html__('e.g. ?wct=on', 'wecantrack'); ?>" value="<?php echo get_option('wecantrack_session_enabler') ?>" style="width:300px;" autocomplete="off">
+                        <input name="wecantrack_session_enabler" type="text" id="wecantrack_session_enabler" placeholder="<?php echo esc_html__('e.g. ?wct=on', 'wecantrack'); ?>" value="<?php echo esc_attr(get_option('wecantrack_session_enabler')) ?>" style="width:300px;" autocomplete="off">
                         <p class="description">
                             <?php echo esc_html__('Place a URL, slug or URL parameter for which our plugin will be functional for the user browser session only.', 'wecantrack'); ?>
                             <br />

@@ -4,7 +4,7 @@ Tags: affiliate conversion tracking, google ads integration, google analytics in
 Requires at least: 4.6
 Tested up to: 6.7.1
 Requires PHP: 7.4
-Stable tag: 1.5.1
+Stable tag: 2.0.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -56,6 +56,11 @@ No, please contact support@wecantrack.com if you want us to support this.
 == Upgrade Notice ==
 
 == Changelog ==
+
+= 2.0.1 - 19th June 2025 =
+ * Removed redirect through parameter functionality
+ * Refactor code
+ * Security improvements
 
 = 1.5.1 - 27th February 2025 =
  * Disable cookie referrer by default

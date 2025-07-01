@@ -1,23 +1,37 @@
 <?php
 
-// todo look into multisite implementation
+require_once WECANTRACK_PATH . '/includes/WecantrackPermissions.php';
 
 /**
  * Class WecantrackAdmin
  *
- * Admin class
+ * Handles the admin-side functionality of the Wecantrack plugin.
+ * Only instantiated in the WordPress admin environment.
+ *
+ * @package Wecantrack
  */
 class WecantrackAdmin {
-
     const CURL_TIMEOUT = 5;
+    
+    protected WecantrackPermissions $wecantrack_permissions;
 
     /**
-     * WecantrackAdmin constructor.
+     * Initializes the WecantrackAdmin class.
+     *
+     * - Runs migration checks to ensure required options exist.
+     * - Registers WordPress admin hooks and AJAX handlers.
+     * - Initializes the WecantrackPermissions handler.
+     * - If an API key is present and the plugin version has changed, updates
+     *   the user's tracking code and website information.
+     *
+     * Handles errors silently by logging them to the PHP error log.
      */
     public function __construct()
     {
         $this->check_migrations();
         $this->load_hooks();
+
+        $this->wecantrack_permissions = new WecantrackPermissions();
 
         $version = get_option('wecantrack_version');
         if ($api_key = get_option('wecantrack_api_key')) {
@@ -26,7 +40,9 @@ class WecantrackAdmin {
 
                 try {
                     WecantrackHelper::update_tracking_code($api_key, $domainURL);
-                } catch (\Exception $e) {}
+                } catch (\Exception $e) {
+                    error_log('WecantrackAdmin update_tracking_code error: ' . $e->getMessage());
+                }
 
                 WecantrackHelper::update_user_website_information($api_key, $domainURL);
                 update_option('wecantrack_version', WECANTRACK_VERSION);
@@ -34,58 +50,70 @@ class WecantrackAdmin {
         }
     }
 
+    /**
+     * Registers admin-related WordPress hooks and AJAX actions.
+     *
+     * @return void
+     */
     public function load_hooks()
     {
-        add_action('admin_menu', array($this, 'admin_menu'));
+        add_action('admin_menu', [$this, 'admin_menu']);
 
         //when a form is submitted to admin-ajax.php
-        add_action('wp_ajax_wecantrack_form_response', array($this, 'the_form_response'));
-        add_action('wp_ajax_wecantrack_redirect_page_form_response', array($this, 'redirect_page_form_response'));
-        add_action('wp_ajax_wecantrack_get_snippet', array($this, 'get_snippet'));
-        add_action('wp_ajax_wecantrack_advanced_settings_response', array($this, 'advanced_settings_response'));
+        add_action('wp_ajax_wecantrack_form_response', [$this, 'the_form_response']);
+        add_action('wp_ajax_wecantrack_advanced_settings_response', [$this, 'advanced_settings_response']);
 
         if (!empty($_GET['page']) && in_array(sanitize_text_field($_GET['page']), ['wecantrack', 'wecantrack-redirect-page', 'wecantrack-advanced-settings'])) {
-            add_action('admin_enqueue_scripts', array($this, 'enqueue_scripts'));
+            add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
         }
     }
 
     /**
-     * Because WP doesn't have a updating hook we have to check on every admin load to see if our options are available.
+     * Because WordPress does not provide a built-in hook for detecting plugin updates, we check on each admin load to ensure required options exist and migrations are applied.
      */
     public function check_migrations() {
-        if(!get_option('wecantrack_custom_redirect_html')) {
+        if (!get_option('wecantrack_custom_redirect_html')) {
             add_option('wecantrack_custom_redirect_html');
         }
-        if(!get_option('wecantrack_redirect_options')) {
+        if (!get_option('wecantrack_redirect_options')) {
             add_option('wecantrack_redirect_options');
         }
-        if(!get_option('wecantrack_website_options')) {
+        if (!get_option('wecantrack_website_options')) {
             add_option('wecantrack_website_options');
         }
-        if(!get_option('wecantrack_version')) {
+        if (!get_option('wecantrack_version')) {
             add_option('wecantrack_version');
         }
-        if(!get_option('wecantrack_referrer_cookie_status')) {
+        if (!get_option('wecantrack_referrer_cookie_status')) {
             add_option('wecantrack_referrer_cookie_status', 0);
         }
-        if(!get_option('wecantrack_storage')) {
+        if (!get_option('wecantrack_storage')) {
             add_option('wecantrack_storage');
         }
     }
 
     /**
-     *  AJAX form response
+     * Handles the AJAX request for the main settings form submission.
+     *
+     * Validates permissions and nonce, retrieves user data from the Wecantrack API,
+     * updates tracking code and website information, and stores plugin settings.
+     *
+     * Responds with JSON success or error message based on the process result.
+     *
+     * @return void Outputs JSON response and terminates script execution.
      */
     public function the_form_response()
     {
-        WecantrackHelper::nonce_check($_POST['wecantrack_form_nonce']);
+        $this->wecantrack_permissions->require_admin_access();
+        $this->wecantrack_permissions->nonce_check();
 
-        $api_key = sanitize_text_field($_POST['wecantrack_api_key']);
+        $userInput = wp_unslash($_POST);
+
+        $api_key = sanitize_text_field($userInput['wecantrack_api_key']);
         $data = self::get_user_information($api_key);
 
         if (!empty($data['error'])) {
-            echo json_encode($data);
-            wp_die();
+            wp_send_json_error($data);
         }
 
         $domainURL = home_url();
@@ -95,115 +123,63 @@ class WecantrackAdmin {
             $data['has_website'] = true;
         } catch (\Exception $e) {
             $data['has_website'] = false;
-            error_log('WCT Plugin: the_form_response() e_msg:'.$e->getMessage());
+            error_log('[WeCanTrack] the_form_response() e_msg:'.$e->getMessage());
         }
 
         WecantrackHelper::update_user_website_information($api_key, $domainURL);
 
-        if (sanitize_text_field($_POST['wecantrack_submit_type']) == 'verify') {// store just api key
+        if (sanitize_text_field($userInput['wecantrack_submit_type']) === 'verify') {// store just api key
             update_option('wecantrack_api_key', $api_key);
         } else {// store everything
             // strip slashes to unescape to get valid JS
-            update_option('wecantrack_plugin_status', sanitize_text_field($_POST['wecantrack_plugin_status']));
-            update_option('wecantrack_session_enabler', sanitize_text_field($_POST['wecantrack_session_enabler']));
+            update_option('wecantrack_plugin_status', sanitize_text_field($userInput['wecantrack_plugin_status']));
+            update_option('wecantrack_session_enabler', sanitize_text_field($userInput['wecantrack_session_enabler']));
         }
 
-        echo json_encode($data);
-        wp_die();
+        // Clear known caches to ensure the updated JS snippet is served to users immediately
+        wecantrack_clear_all_known_caches();
+
+        return wp_send_json_success($data);
     }
 
-
     /**
-     *  AJAX form response
+     * Handles the AJAX request for advanced settings form submission.
+     *
+     * Updates plugin storage options for SSL, script inclusion, and referrer cookie settings.
+     * Responds with JSON success message.
+     *
+     * @return void
      */
     public function advanced_settings_response() {
-        WecantrackHelper::nonce_check($_POST['wecantrack_form_nonce']);
+        $this->wecantrack_permissions->require_admin_access();
+        $this->wecantrack_permissions->nonce_check();
+
+        $userInput = wp_unslash($_POST);
+
         $storage = json_decode(get_option('wecantrack_storage'), true);
         if (!$storage) {
             $storage = [];
         }
 
-        $referrer_cookie_status = sanitize_text_field($_POST['wecantrack_referrer_cookie_status']);
-        $ssl_status = sanitize_text_field($_POST['wecantrack_ssl_status']);
-        $include_script = sanitize_text_field($_POST['wecantrack_include_script']);
-        $can_redirect_through_parameter = sanitize_text_field($_POST['wecantrack_can_redirect_through_parameter']);
+        $referrer_cookie_status = filter_var($userInput['wecantrack_referrer_cookie_status'], FILTER_VALIDATE_BOOLEAN);
+        $disable_ssl = filter_var($userInput['wecantrack_ssl_disabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $include_script = filter_var($userInput['wecantrack_include_script'], FILTER_VALIDATE_BOOLEAN);
 
-        if ($ssl_status == 0) {
-            $storage['disable_ssl'] = true;
-        } else if ($ssl_status == 1) {
-            unset($storage['disable_ssl']);
-        }
-
-        if ($include_script == 1) {
-            $storage['include_script'] = true;
-        } else if ($include_script == 0) {
-            $storage['include_script'] = false;
-        }
-
-        $storage['can_redirect_through_parameter'] = $can_redirect_through_parameter == 1 ? 1 : 0;
+        $storage['disable_ssl'] = $disable_ssl;
+        $storage['include_script'] = $include_script;
+        $storage['can_redirect_through_parameter'] = false;
 
         update_option('wecantrack_storage', json_encode($storage));
+        update_option('wecantrack_referrer_cookie_status', $referrer_cookie_status);
 
-        if ($referrer_cookie_status == 0 || $referrer_cookie_status == 1) {
-            update_option('wecantrack_referrer_cookie_status', $referrer_cookie_status);
-        }
-
-        echo json_encode(['msg'=>'ok']);
-        wp_die();
+        return wp_send_json_success(['msg' => 'ok']);
     }
 
     /**
-     * AJAX form redirect page
+     * Registers admin menu and submenu pages for the plugin.
+     *
+     * @return void
      */
-    public function redirect_page_form_response() {
-        WecantrackHelper::nonce_check($_POST['wecantrack_form_nonce']);
-
-        $options = unserialize(get_option('wecantrack_redirect_options'));
-        if (isset($_POST['wecantrack_redirect_status']) && sanitize_text_field($_POST['wecantrack_redirect_status']) == 1) {
-            $options['status'] = 1;
-        } else {
-            $options['status'] = 0;
-        }
-
-        if (isset($_POST['wecantrack_redirect_delay'])) {
-            if ($_POST['wecantrack_redirect_delay'] == 0 && $_POST['wecantrack_redirect_delay'] != '') {
-                $options['delay'] = 0;
-            } else if ($_POST['wecantrack_redirect_delay'] < 0) {
-                echo json_encode(array('error' => esc_html__('Delay value can not be negative')));
-                wp_die();
-            } else if ($_POST['wecantrack_redirect_delay'] > 0) {
-                $options['delay'] = sanitize_text_field($_POST['wecantrack_redirect_delay']);
-            } else {
-                //default 2 seconds
-                $options['delay'] = 2;
-            }
-        } else {
-            //default 2 seconds
-            $options['delay'] = 2;
-        }
-
-        if (isset($_POST['url_contains'])) {
-            $options['url_contains'] = sanitize_text_field($_POST['url_contains']);
-        } else {
-            $options['url_contains'] = null;
-        }
-
-        //no need to sanitize, users can add divs styles etc to the redirect text
-        if (!empty($_POST['redirect_text'])) {
-            $options['redirect_text'] = stripslashes($_POST['redirect_text']);
-        } else {
-            echo json_encode(array('error' => esc_html__('Redirect text can not be empty, if you want to have no text then add an empty space \' \' to the field.')));
-            wp_die();
-        }
-
-        // do not sanitize, because we need to paste the exact html code the user inputs
-        update_option('wecantrack_custom_redirect_html', stripslashes($_POST['wecantrack_custom_redirect_html']));
-        update_option('wecantrack_redirect_options', serialize($options));
-
-        echo json_encode([]);
-        wp_die();
-    }
-
     public function admin_menu()
     {
         add_menu_page(
@@ -211,101 +187,186 @@ class WecantrackAdmin {
             'WeCanTrack',
             'manage_options',
             'wecantrack',
-            array($this, 'settings'),
+            [$this, 'settings'],
             WECANTRACK_URL . '/images/favicon.png',
             99
         );
-        add_submenu_page('wecantrack', 'WeCanTrack > Redirect Page', 'Redirect Page',
-            'manage_options', 'wecantrack-redirect-page', array($this, 'redirect_page'));
 
-        add_submenu_page('wecantrack', 'WeCanTrack > Advanced Settings', 'Settings',
-            'manage_options', 'wecantrack-advanced-settings', array($this, 'advanced_settings'));
-    }
-
-    public function advanced_settings()
-    {
-        require_once WECANTRACK_PATH . '/views/advanced_settings.php';
-    }
-
-    public function settings()
-    {
-        require_once WECANTRACK_PATH . '/views/settings.php';
-    }
-
-    public function redirect_page()
-    {
-        require_once WECANTRACK_PATH . '/views/redirect_page.php';
+        add_submenu_page(
+            'wecantrack',
+            'WeCanTrack > Redirect Page',
+            'Redirect Page',
+            'manage_options',
+            'wecantrack-redirect-page',
+            [$this, 'redirect_page']
+        );
+    
+        add_submenu_page(
+            'wecantrack',
+            'WeCanTrack > Advanced Settings',
+            'Settings',
+            'manage_options',
+            'wecantrack-advanced-settings',
+            [$this, 'advanced_settings']
+        );
     }
 
     /**
-     *  Load in css and js for admin page and all the translations
+     * Renders the main WeCanTrack settings page in the WordPress admin.
+     *
+     * Displays the form for entering the API key and enabling plugin features.
+     * Prevents access if the current user lacks required capabilities.
+     *
+     * @return void
+     */
+    public function settings()
+    {
+        if (! $this->wecantrack_permissions->current_user_can_manage_options()) {
+            require_once WECANTRACK_PATH . '/views/unauthorized.php';
+            return;
+        }
+
+        require_once WECANTRACK_PATH . '/views/settings.php';
+    }
+
+    /**
+     * @deprecated This page will be removed in a future version.
+     * 
+     * Renders the redirect page configuration view in the WordPress admin.
+     *
+     * Used to manage and preview redirect behavior for affiliate links.
+     * Prevents access if the current user lacks required capabilities.
+     *
+     * @return void
+     */
+    public function redirect_page()
+    {
+        if (! $this->wecantrack_permissions->current_user_can_manage_options()) {
+            require_once WECANTRACK_PATH . '/views/unauthorized.php';
+            return;
+        }
+
+        // Make $table available in the view
+        include WECANTRACK_PATH . '/views/redirect_page.php';
+    }
+
+    /**
+     * Renders the advanced settings page for the WeCanTrack plugin.
+     *
+     * Allows configuration of script injection, SSL, redirect parameters,
+     * and referrer cookie behavior.
+     * Prevents access if the current user lacks required capabilities.
+     *
+     * @return void
+     */
+    public function advanced_settings()
+    {
+        if (! $this->wecantrack_permissions->current_user_can_manage_options()) {
+            require_once WECANTRACK_PATH . '/views/unauthorized.php';
+            return;
+        }
+
+        require_once WECANTRACK_PATH . '/views/advanced_settings.php';
+    }
+
+    /**
+     * Validates whether a given domain string is a properly formatted domain name.
+     *
+     * @param string $domain The domain name to validate.
+     * @return bool True if valid, false otherwise.
+     */
+    public function is_valid_domain($domain) {
+        $domain = strtolower(trim($domain));
+        // Must contain at least one dot and no scheme
+        return preg_match('/^(?!:\/\/)([a-z0-9-]+\.)+[a-z]{2,}$/i', $domain);
+    }
+
+    /**
+     * Enqueues CSS and JavaScript files for the Wecantrack admin pages.
+     *
+     * Registers and loads scripts and styles based on the current admin page.
+     * Also localizes translation strings and settings for use in JavaScript.
+     *
+     * @return void
      */
     public function enqueue_scripts()
     {
         $site_url = home_url();
+        $wecantrack_version = WECANTRACK_VERSION;
 
-        $params = array (
+        if ( defined('WP_DEBUG') && WP_DEBUG ) {
+            $wecantrack_version = time(); // Use current timestamp for dev mode to not cache the assets
+        }
+
+        $params = [
             'ajaxurl' => admin_url('admin-ajax.php'),
             'site_url' => $site_url,
             'lang_request_wrong' => esc_html__('Something went wrong with the request', 'wecantrack'),
             'lang_added_one_active_network' => esc_html__('Added at least 1 active network account', 'wecantrack'),
             'lang_not_added_one_active_network' => esc_html__('You have not added at least 1 active network account. To add a network, click here.', 'wecantrack'),
-            'lang_website_added' => esc_html__(sprintf('Website %s added', $site_url), 'wecantrack'),
-            'lang_website_not_added' => esc_html__(sprintf('You have not added the website %s to our platform. To add the website, click here.', $site_url), 'wecantrack'),
+            // translators: %s: The website URL
+            'lang_website_added' => sprintf(esc_html__('Website %s added', 'wecantrack'), $site_url),
+            // translators: %s: The website URL
+            'lang_website_not_added' => sprintf(esc_html__('You have not added the website %s to our platform. To add the website, click here.', 'wecantrack'), $site_url),
             'lang_verified' => esc_html__('verified', 'wecantrack'),
             'lang_invalid_api_key' => esc_html__('Invalid API Key', 'wecantrack'),
             'lang_invalid_request' => esc_html__('Invalid Request', 'wecantrack'),
             'lang_valid_api_key' => esc_html__('Valid API Key', 'wecantrack'),
             'lang_changes_saved' => esc_html__('Your changes have been saved', 'wecantrack'),
             'lang_something_went_wrong' => esc_html__('Something went wrong.', 'wecantrack'),
-        );
+        ];
 
-        wp_register_style('wecantrack_admin_css', WECANTRACK_URL.'/css/admin.css', array(), WECANTRACK_VERSION);
+        wp_register_style('wecantrack_admin_css', WECANTRACK_URL.'/css/admin.css', [], $wecantrack_version);
         wp_enqueue_style('wecantrack_admin_css');
 
-        if ($_GET['page'] === 'wecantrack') {
-            wp_enqueue_script( 'wecantrack_admin_js', WECANTRACK_URL.'/js/admin.js', array( 'jquery' ), WECANTRACK_VERSION, false);
-            wp_localize_script( 'wecantrack_admin_js', 'params', $params);
-        } else if ($_GET['page'] === 'wecantrack-redirect-page') {
-            wp_enqueue_script( 'wecantrack_admin_js', WECANTRACK_URL.'/js/redirect_page.js', array( 'jquery' ), WECANTRACK_VERSION, false);
-            wp_localize_script( 'wecantrack_admin_js', 'params', $params);
-        } else if ($_GET['page'] === 'wecantrack-advanced-settings') {
-            wp_enqueue_script( 'wecantrack_admin_js', WECANTRACK_URL.'/js/advanced_settings.js', array( 'jquery' ), WECANTRACK_VERSION, false);
-            wp_localize_script( 'wecantrack_admin_js', 'params', $params);
+        $page = sanitize_key($_GET['page'] ?? '');
+        switch ($page) {
+            case 'wecantrack':
+                wp_enqueue_script( 'wecantrack_admin_js', WECANTRACK_URL.'/js/admin.js', [], $wecantrack_version, false);
+                wp_localize_script( 'wecantrack_admin_js', 'params', $params);
+                break;
+            case 'wecantrack-redirect-page':
+                wp_enqueue_script( 'wecantrack_admin_js', WECANTRACK_URL.'/js/redirect_page.js', [], $wecantrack_version, false);
+                wp_localize_script( 'wecantrack_admin_js', 'params', $params);
+                break;
+            case 'wecantrack-advanced-settings':
+                wp_enqueue_script( 'wecantrack_admin_js', WECANTRACK_URL.'/js/advanced_settings.js', [], $wecantrack_version, false);
+                wp_localize_script( 'wecantrack_admin_js', 'params', $params);
+                break;
         }
     }
 
     /**
-     * Get information about the user on the wct platform in order to see where the user currently is on the on-boarding process.
+     * Retrieves user information from the Wecantrack API.
      *
-     * @param $api_key
-     * @return array|mixed
+     * Sends a GET request to the Wecantrack API to fetch user-related data,
+     * which is used to determine the onboarding status and settings.
+     *
+     * @param string $api_key The Wecantrack API key.
+     * @return array Returns an associative array with user information or an 'error' key on failure.
      */
     public static function get_user_information($api_key)
     {
         try {
             $api_url = WECANTRACK_API_BASE_URL . '/api/v1/user/information';
-            $response = wp_remote_get($api_url, array(
+            $response = wp_remote_get($api_url, [
                 'timeout' => 10,
-                'headers' => array(
+                'headers' => [
                     'x-api-key' => $api_key,
                     'Content-Type' => 'application/json',
                     'x-wp-version' => WECANTRACK_VERSION
-                ),
+                ],
                 'sslverify' => WecantrackHelper::get_sslverify_option()
-            ));
+            ]);
 
-            $response = wp_remote_retrieve_body($response);
-            $response = json_decode($response, true);
-
-            if (!empty($response['error'])) {
-                throw new \Exception(json_encode($response));
+            if (is_wp_error($response)) {
+                throw new Exception($response->get_error_message());
             }
 
-            return $response;
+            $response = wp_remote_retrieve_body($response);
+            return json_decode($response, true);
         } catch (\Exception $e) {
-            return array('error' => $e->getMessage());
+            return ['error' => $e->getMessage()];
         }
     }
-
 }

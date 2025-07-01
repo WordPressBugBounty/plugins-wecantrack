@@ -1,60 +1,28 @@
 <?php
-//nonce
-$wecantrack_nonce = wp_create_nonce('wecantrack_nonce');
 $wecantrack_storage = json_decode(get_option('wecantrack_storage'), true);
 $wecantrack_script = get_option('wecantrack_snippet');
-// $wecantrack_script = preg_replace('/\s+/', '', $wecantrack_script);
-
-$wecantrack_auto_tagging = false;
-if (strpos($wecantrack_script, "'auto_tagging' : true") !== false) {
-    $wecantrack_auto_tagging = true;
-}
 
 //plugins status
 $wecantrack_referrer_cookie_enabled = $wecantrack_referrer_cookie_disabled = '';
 
-if (get_option('wecantrack_referrer_cookie_status')) {
-    $wecantrack_referrer_cookie_enabled = 'checked="checked"';
-} else {
-    $wecantrack_referrer_cookie_disabled = 'checked="checked"';
-}
+$wecantrack_referrer_cookie_status = get_option('wecantrack_referrer_cookie_status') ? true : false;
+$wecantrack_ssl_disabled = (bool) $wecantrack_storage['disable_ssl'] ?? false;
+$wecantrack_can_redirect_through_parameter_status = false;
 
-$wecantrack_ssl_status_enabled = empty($wecantrack_storage['disable_ssl']) ? 'checked="checked"' : null;
-$wecantrack_ssl_status_disabled = !empty($wecantrack_storage['disable_ssl']) ? 'checked="checked"' : null;
-
-if (isset($wecantrack_storage['can_redirect_through_parameter']) && $wecantrack_storage['can_redirect_through_parameter'] == true) {
-    $wecantrack_can_redirect_through_parameter_enabled = 'checked="checked"';
-    $wecantrack_can_redirect_through_parameter_disabled = null;
-} else {
-    $wecantrack_can_redirect_through_parameter_enabled = null;
-    $wecantrack_can_redirect_through_parameter_disabled = 'checked="checked"';
-}
-
-if (isset($wecantrack_storage['include_script'])) {
-    if ($wecantrack_storage['include_script'] == true) {
-        $wecantrack_include_script_enabled = 'checked="checked"';
-        $wecantrack_include_script_disabled = null;
-    } else {
-        $wecantrack_include_script_enabled = null;
-        $wecantrack_include_script_disabled = 'checked="checked"';
-    }
-} else {
-    $wecantrack_include_script_enabled = 'checked="checked"';
-    $wecantrack_include_script_disabled = null;
-}
+$wecantrack_include_script = !empty($wecantrack_storage['include_script']);
 ?>
 
 <div class="wrap">
     <div id="wecantrack_loading"></div>
     <div class="wecantrack_body">
         <div class="wecantrack_hero_image">
-            <img src="<?php echo WECANTRACK_URL . '/images/wct-logo-normal.svg' ?>" alt="wct-logo">
+            <img src="<?php echo esc_url(WECANTRACK_URL . '/images/wct-logo-normal.svg') ?>" alt="wct-logo">
         </div>
         <h1>WeCanTrack > Settings</h1>
 
-        <form id="wecantrack_ajax_form" action="<?php echo WECANTRACK_PATH . '.php' ?>" method="post">
+        <form id="wecantrack_ajax_form" data-ajax="true" method="post">
             <input type="hidden" name="action" value="wecantrack_advanced_settings_response">
-            <input type="hidden" name="wecantrack_form_nonce" value="<?php echo $wecantrack_nonce ?>">
+            <input type="hidden" name="wecantrack_form_nonce" value="<?php echo esc_attr(wp_create_nonce('wecantrack_form_nonce')); ?>">
 
             <table class="form-table" role="presentation">
                 <tbody>
@@ -68,12 +36,12 @@ if (isset($wecantrack_storage['include_script'])) {
                         <fieldset>
                             <p>
                                 <label>
-                                    <input name="wecantrack_include_script" type="radio" value="1" <?php echo $wecantrack_include_script_enabled ?>>
+                                    <input name="wecantrack_include_script" type="radio" value="1" <?php echo checked($wecantrack_include_script, true) ?>>
                                     <?php echo esc_html__('Enable', 'wecantrack'); ?>
                                 </label>
                                 &nbsp;
                                 <label>
-                                    <input name="wecantrack_include_script" type="radio" value="0" <?php echo $wecantrack_include_script_disabled ?>>
+                                    <input name="wecantrack_include_script" type="radio" value="0" <?php echo checked($wecantrack_include_script, false) ?>>
                                     <?php echo esc_html__('Disable', 'wecantrack'); ?>
                                 </label>
                             </p>
@@ -92,12 +60,12 @@ if (isset($wecantrack_storage['include_script'])) {
                         <fieldset>
                             <p>
                                 <label>
-                                    <input name="wecantrack_referrer_cookie_status" type="radio" value="1" <?php echo $wecantrack_referrer_cookie_enabled ?>>
+                                    <input name="wecantrack_referrer_cookie_status" type="radio" value="1" <?php echo checked($wecantrack_referrer_cookie_status, true) ?>>
                                     <?php echo esc_html__('Enable', 'wecantrack'); ?>
                                 </label>
                                 &nbsp;
                                 <label>
-                                    <input name="wecantrack_referrer_cookie_status" type="radio" value="0" <?php echo $wecantrack_referrer_cookie_disabled ?>>
+                                    <input name="wecantrack_referrer_cookie_status" type="radio" value="0" <?php echo checked($wecantrack_referrer_cookie_status, false) ?>>
                                     <?php echo esc_html__('Disable', 'wecantrack'); ?>
                                 </label>
                             </p>
@@ -116,12 +84,12 @@ if (isset($wecantrack_storage['include_script'])) {
                         <fieldset>
                             <p>
                                 <label>
-                                    <input name="wecantrack_ssl_status" type="radio" value="1" <?php echo $wecantrack_ssl_status_enabled ?>>
+                                    <input name="wecantrack_ssl_disabled" type="radio" value="0" <?php echo checked($wecantrack_ssl_disabled, false) ?>>
                                     <?php echo esc_html__('Enable', 'wecantrack'); ?>
                                 </label>
                                 &nbsp;
                                 <label>
-                                    <input name="wecantrack_ssl_status" type="radio" value="0" <?php echo $wecantrack_ssl_status_disabled ?>>
+                                    <input name="wecantrack_ssl_disabled" type="radio" value="1" <?php echo checked($wecantrack_ssl_disabled, true) ?>>
                                     <?php echo esc_html__('Disable', 'wecantrack'); ?>
                                 </label>
                             </p>
@@ -140,45 +108,19 @@ if (isset($wecantrack_storage['include_script'])) {
                         <fieldset>
                             <p>
                                 <label>
-                                    <input name="wecantrack_can_redirect_through_parameter" type="radio" value="1" <?php echo $wecantrack_can_redirect_through_parameter_enabled ?>>
-                                    <?php echo esc_html__('Enable', 'wecantrack'); ?>
-                                </label>
-                                &nbsp;
-                                <label>
-                                    <input name="wecantrack_can_redirect_through_parameter" type="radio" value="0" <?php echo $wecantrack_can_redirect_through_parameter_disabled ?>>
+                                    <input name="wecantrack_can_redirect_through_parameter" type="radio" value="0" <?php echo checked($wecantrack_can_redirect_through_parameter_status, false) ?>>
                                     <?php echo esc_html__('Disable', 'wecantrack'); ?>
                                 </label>
                             </p>
                         </fieldset>
 
-                        <p class="description">With auto-tagging enabled, the need to redirect through the 'afflink' parameter becomes irrelevant, this setting is now disabled by standard. We recommend to keep using auto-tagging since the afflink parameter can potentially be exploited by external parties to execute unauthorised redirects if they properly replicate the link and data parameter conditions.</p>
+                        <p class="description">
+                            This feature is <strong>deprecated</strong> and <strong>disabled</strong>. With auto-tagging enabled, the need to redirect through the <code>afflink</code> parameter becomes irrelevant. We recommend continuing to use auto-tagging, as the <code>afflink</code> parameter can be exploited by external parties to perform unauthorized redirects if they manage to replicate the link and data parameter conditions.  
+                            <br><br>
+                            For more information, please contact <a href="mailto:support@wecantrack.com">support@wecantrack.com</a>.
+                        </p>
                     </td>
                 </tr>
-
-                <!-- <tr class="wecantrack-plugin-enforce-turning-off-afflink-parameter">
-                    <th scope="row">
-                        <label for=""><?php echo esc_html__('Enforce turning off Redirect Through Parameter even when `Include WCT Script` is disabled', 'wecantrack'); ?></label>
-                    </th>
-
-                    <td>
-                        <fieldset>
-                            <p>
-                                <label>
-                                    <input name="wecantrack_enforce_turning_off_afflink_parameter" type="radio" value="1">
-                                    <?php echo esc_html__('Enable', 'wecantrack'); ?>
-                                </label>
-                                &nbsp;
-                                <label>
-                                    <input name="wecantrack_enforce_turning_off_afflink_parameter" type="radio" value="0">
-                                    <?php echo esc_html__('Disable', 'wecantrack'); ?>
-                                </label>
-                            </p>
-                        </fieldset>
-
-                        <p class="description">please ensure that your manually placed JS tag has auto-tagging enabled, else this setting can break your outgoing URLs.</p>
-                    </td>
-                </tr> -->
-
                 </tbody>
             </table>
 

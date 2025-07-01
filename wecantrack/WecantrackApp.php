@@ -1,17 +1,18 @@
 <?php
 
-// todo wct.js proxy wp-cron update
-
 /**
  * Class WecantrackApp
  *
- * Public class
+ * Handles the public-facing functionality of the Wecantrack plugin.
+ * Loaded on non-admin (public) pages of the WordPress site.
+ *
+ * @package Wecantrack
  */
 class WecantrackApp {
     const CURL_TIMEOUT_S = 5, FETCH_DOMAIN_PATTERN_IN_HOURS = 3;
 
     private $api_key, $drop_referrer_cookie;
-    protected $redirectPageObj;
+
     protected ?array $options_storage;
     protected ?string $snippet;
 
@@ -43,63 +44,25 @@ class WecantrackApp {
             $this->options_storage = json_decode(get_option('wecantrack_storage'), true);
             $this->snippet = get_option('wecantrack_snippet');
 
-            $this->redirectPageObj = new WecantrackAppRedirectPage($this->drop_referrer_cookie, $this->snippet);
-
-            // link parameter redirect only happens from the RedirectPage class. We do this because we do not want to do another clickout request
-            if ($this->redirectPageObj->current_url_is_redirect_page_endpoint() && !empty($_GET['link'])) {
-                if ($this->redirectPageObj->redirect_option_status_is_enabled()) {
-                    if (self::is_affiliate_link($this->api_key, $_GET['link'])) {
-                        WecantrackApp::set_no_cache_headers();
-                        header('X-Robots-Tag: noindex', true);
-                        self::setRedirectHeader($_GET['link']);
-                        exit;
-                    }
-                }
-            }
-
-            if (!empty($_GET['data']) && !empty($_GET['afflink'])) {
-                if (! $this->can_redirect_through_parameter()) {
-                    return;
-                } 
-
-                //simple wct param validation
-                if (strlen($_GET['data']) > 50 && substr($_GET['afflink'], 0, 4) === 'http') {
-                    $this->parameter_redirect($_GET['afflink']);
-                }
-            } else {
-                $this->load_hooks();
-            }
+            $this->load_hooks();
 
             if ($this->drop_referrer_cookie) {
-                $this->setHttpReferrer();
+                $this->set_http_referrer();
             }
         } catch (Exception $e) {
+            error_log('[WeCanTrack] init error: ' . $e->getMessage());
             return;
         }
     }
 
     /**
-     * Responsible for checking if the website can redirect through &afflink parameter.
-     * 
-     * @return bool 
+     * Outputs plugin configuration and status in JSON format for debugging purposes.
+     *
+     * This method is triggered when the `_wct_config` GET parameter matches the current date's MD5 hash.
+     * Primarily intended for internal diagnostic or developer use.
+     *
+     * @return void This method exits execution after echoing JSON output.
      */
-    private function can_redirect_through_parameter() : bool {
-        // if not using auto-tagging and there is no explicit setting for we can redirect through parameter then we can redirect
-        // else we might break the redirects
-        if ($this->snippet && strpos($this->snippet, 'type=session') === false) {
-            return true;
-        }
-
-        // default setting is false
-        if (isset($this->options_storage['can_redirect_through_parameter'])) {
-            if ($this->options_storage['can_redirect_through_parameter'] == 1) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private static function if_debug_show_plugin_config() {
         if (isset($_GET['_wct_config']) && $_GET['_wct_config'] === md5(date('Y-m-d'))) {
             header('X-Robots-Tag: noindex', true);
@@ -140,14 +103,13 @@ class WecantrackApp {
                 'v' => WECANTRACK_VERSION,
                 'status' => get_option('wecantrack_plugin_status'),
                 'r_status' => get_option('wecantrack_redirect_status'),
-                'r_options' => unserialize(get_option('wecantrack_redirect_options')),
+                'r_options' => maybe_unserialize(get_option('wecantrack_redirect_options')),
                 'f_exp' => get_option('wecantrack_fetch_expiration'),
-                's_version' => get_option('wecantrack_fetch_expiration'),
                 'sess_e' => get_option('wecantrack_session_enabler'),
                 'snippet_v' => get_option('wecantrack_snippet_version'),
                 'snippet' => get_option('wecantrack_snippet'),
                 'refreshed' => $refreshed,
-                'patterns' => unserialize(get_option('wecantrack_domain_patterns')),
+                'patterns' => maybe_unserialize(get_option('wecantrack_domain_patterns')),
                 'extra' => $extra
             ]);
 
@@ -156,6 +118,17 @@ class WecantrackApp {
 
     }
 
+    /**
+     * Returns the current full URL or just the base site URL, depending on the parameter.
+     *
+     * Constructs the URL using the server's `HTTPS`, `SERVER_NAME`, and optionally `REQUEST_URI`.
+     * Useful for generating absolute URLs in a variety of contexts.
+     *
+     * @param bool $without_uri Optional. If true, returns only the scheme and domain (e.g., https://example.com). 
+     *                          If false, includes the full request URI. Default false.
+     *
+     * @return string The constructed current URL.
+     */
     public static function current_url($without_uri = false) {
         if ($without_uri) {
             return sprintf(
@@ -174,43 +147,43 @@ class WecantrackApp {
     }
 
     /**
-     * Redirect to afflink URL if parameters are available
-     * @param $link
+     * Sends HTTP headers to disable caching of the current response.
+     *
+     * Applies both HTTP/1.0 and HTTP/1.1 headers to prevent the browser and intermediaries from caching the response.
+     *
+     * @return void
      */
-    public function parameter_redirect($link) {
-        if (preg_match("/^https?%3A/", $link)) {
-            $link = urldecode($link);
-        }
-        if (self::is_affiliate_link($this->api_key, $link)) {
-            $link = $this->get_modified_affiliate_url($link, $this->api_key); //clickout request
-            if ($this->redirectPageObj->redirect_page_is_enabled()) {
-                $this->redirectPageObj->redirect_through_page($link);
-                exit;
-            }
-        }
-
-        header('X-Robots-Tag: noindex', true);
-        self::setRedirectHeader($link);
-        exit;
-    }
-
-    private static function setRedirectHeader($link, $code = 301) {
-        header('Location: '.$link, true, $code);
-    }
-
     public static function set_no_cache_headers() {
         header('Cache-Control: no-store, no-cache, max-age=0');//HTTP 1.1
         header('Pragma: no-cache');//HTTP 1.0
     }
 
+    /**
+     * Registers WordPress hooks used by the plugin.
+     *
+     * - Adds a filter to intercept redirects via `wp_redirect`.
+     * - Optionally adds the JavaScript snippet to the page head if `include_script` is enabled in options.
+     *
+     * @return void
+     */
     public function load_hooks() {
-        add_filter('wp_redirect', array($this, 'redirect_default'), 99);
+        add_filter('wp_redirect', [$this, 'redirect_default'], 99);
 
         if (!isset($this->options_storage['include_script']) || $this->options_storage['include_script'] == true) {
-            add_action('wp_head', array($this, 'insert_snippet'));
+            add_action('wp_head', [$this, 'insert_snippet']);
         }
     }
 
+    /**
+     * Default redirect handler that processes affiliate links before redirection.
+     *
+     * For example, it hooks on redirects from Pretty Link WP Plugin. 
+     * The functionality modifies the URL to add tracking decoration to the URL before,
+     * allowing the visitor to proceed to the intended link.
+     *
+     * @param string $location The original redirect URL.
+     * @return string The modified or original URL to be used for the redirect.
+     */
     public function redirect_default($location) {
         self::delete_http_referrer_where_site_url(self::current_url());
 
@@ -221,55 +194,53 @@ class WecantrackApp {
         $modified_url = self::get_modified_affiliate_url($location, $this->api_key, ['ignore_current_clickout_url' => true]);
         $location = $location != $modified_url ? $modified_url : $location;
 
-        if ($this->redirectPageObj->redirect_page_is_enabled()) {
-            $this->redirectPageObj->redirect_through_page($location);//redirect_page will be used if enabled
-            exit;
-        }
-
         return $location;
-
     }
 
     /**
      * Inserts the WCT Snippet with preload tag.
+     * 
+     * @return void
      */
     public function insert_snippet() {
-        if (! $this->snippet) {
+        if (empty($this->snippet)) {
             return;
         }
 
         preg_match('/s\.src ?= ?\'([^\']+)/', $this->snippet, $scriptSrcStringmatch);
+
         if (!empty($scriptSrcStringmatch[1])) {
-            echo '<link rel="preload" href="'.$scriptSrcStringmatch[1].'" as="script">';
+            echo '<link rel="preload" href="'.esc_url($scriptSrcStringmatch[1]).'" as="script">';
             echo '<script type="text/javascript" data-ezscrex="false" async>'.$this->snippet.'</script>';
         }
     }
 
     /**
-     * Checks if URL is an affiliate link
+     * Determines whether the given URL is an affiliate link based on known domain patterns.
      *
-     * @param $api_key
-     * @param $original_url
-     * @return bool
+     * @param string $api_key      The API key used to retrieve domain patterns from the WeCanTrack API.
+     * @param string $original_url The URL to check against known affiliate domains and patterns.
+     *
+     * @return bool True if the URL matches a known affiliate domain or pattern; false otherwise.
      */
     public static function is_affiliate_link($api_key, $original_url) {
         $patterns = self::wecantrack_get_domain_patterns($api_key);
         if (!$patterns) return false; // do not perform Clickout api if the pattern isn't in yet
 
-        if (!isset($patterns['origins'])) return true;
+        if (!isset($patterns['origins'])) return false;
 
         preg_match('~^(https?:\/\/)([^?\&\/\ ]+)~', $original_url, $matches);
 
         if (empty($matches[1])) {
             // relative URLs are not faulty but are not affiliate links
             if (ltrim($original_url)[0] !== '/') {
-                error_log('WeCanTrack Plugin tried to parse a faulty URL: '.$original_url);
+                error_log('[WeCanTrack] tried to parse a faulty URL: '.$original_url);
                 return false;
             }
         }
 
         if (!empty($matches[2])) {
-            $matches[2] = '//' . $matches[2];
+            $matches[2] = "//{$matches[2]}";
             // search if domain key matches to the origin keys
             if (isset($patterns['origins'][$matches[2]])) {
                 return true;
@@ -282,7 +253,7 @@ class WecantrackApp {
 
         // check if the full url matches to any regex patterns
         foreach($patterns['regexOrigins'] as $pattern) {
-            if (preg_match('~'.$pattern.'~', $original_url)) {
+            if (preg_match("~{$pattern}~", $original_url)) {
                 return true;
             }
         }
@@ -290,17 +261,26 @@ class WecantrackApp {
         return false;
     }
 
+    /**
+     * Returns the full site URL of the current request.
+     *
+     * Combines WordPress's `home_url()` with the current request URI to produce
+     * the full URL of the page being accessed.
+     *
+     * @return string The full site URL of the current request.
+     */
     private static function get_site_url() {
         return home_url().$_SERVER['REQUEST_URI'];
     }
 
     /**
-     * Gets the new tracking URL from wecantrack.com, we will use this link to redirect the user to
+     * Modifies the original affiliate URL by sending tracking data to the WeCanTrack API.
      *
-     * @param $original_affiliate_url
-     * @param $api_key
-     * @param array $options
-     * @return string
+     * @param string $original_affiliate_url The original affiliate URL to be potentially modified.
+     * @param string $api_key                The API key used to authenticate with the WeCanTrack API.
+     * @param array  $options                Optional. Additional options for future use (currently unused).
+     *
+     * @return string The modified affiliate URL returned by the API, or the original URL on failure.
      */
     private static function get_modified_affiliate_url($original_affiliate_url, $api_key, $options = [])
     {
@@ -316,7 +296,7 @@ class WecantrackApp {
             $wctCookie = !$wctCookie && !empty($_GET['data']) && strlen($_GET['data']) > 50
                 ? sanitize_text_field($_GET['data']) : $wctCookie;
 
-            $post_data = array(
+            $post_data = [
                 'affiliate_url' => rawurlencode($original_affiliate_url),
                 'clickout_url' => self::get_clickout_url(),
                 'redirect_url' => self::current_url(),
@@ -324,17 +304,21 @@ class WecantrackApp {
                 '_wctrck' => $wctCookie,
                 'ua' => $_SERVER['HTTP_USER_AGENT'],
                 'ip' => self::get_user_real_ip(),
-            );
+            ];
 
-            $response = wp_remote_post(WECANTRACK_API_BASE_URL . '/api/v1/clickout', array(
+            $response = wp_remote_post(WECANTRACK_API_BASE_URL . '/api/v1/clickout', [
                 'timeout' => self::CURL_TIMEOUT_S,
-                'headers' => array(
+                'headers' => [
                     'x-api-key' => $api_key,
                     'Content-Type' => 'application/json',
-                ),
+                ],
                 'body' => json_encode($post_data),
                 'sslverify' => WecantrackHelper::get_sslverify_option()
-            ));
+            ]);
+
+            if (is_wp_error($response)) {
+                throw new Exception($response->get_error_message());
+            }
 
             $code = wp_remote_retrieve_response_code($response);
             if ($code != 200) {
@@ -342,6 +326,10 @@ class WecantrackApp {
             }
             $response = wp_remote_retrieve_body($response);
             $response = json_decode($response);
+
+            if (empty($response)) {
+                throw new Exception('Empty response received from the API');
+            }
 
             if ($response->affiliate_url) {
                 return rawurldecode($response->affiliate_url);
@@ -362,21 +350,22 @@ class WecantrackApp {
                 'response' => $response
             ];
 
-            error_log('WeCanTrack Plugin Clickout API exception: '.json_encode($error_msg));
+            error_log('[WeCanTrack] Clickout API exception: '.json_encode($error_msg));
         }
 
         return $original_affiliate_url;
     }
 
     /**
-     * Get Clickout URL
+     * Retrieves the most relevant referrer URL for clickout tracking.
      *
-     * @return string
+     * @param bool $check_referrer_cookie Optional. Whether to check referrer cookies as a fallback. Default true.
+     * @return string|null The resolved clickout URL, or null if none found.
      */
     private static function get_clickout_url($check_referrer_cookie = true) {
         if (!empty($_SERVER['HTTP_REFERER'])) {
             if (preg_match("~^https?:\/\/[^.]+\.(?:facebook|youtube)\.com~i", $_SERVER['HTTP_REFERER'])) {
-                return self::get_site_url(); //todo unsure about this, doesn't redirect_url take care of this?
+                return self::get_site_url();
             } else {
                 return $_SERVER['HTTP_REFERER'];
             }
@@ -399,7 +388,7 @@ class WecantrackApp {
      */
     private static function get_user_real_ip()
     {
-        $ip_headers = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
+        $ip_headers = ['HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR'];
         foreach ($ip_headers as $header) {
             if (array_key_exists($header, $_SERVER) === true) {
                 foreach (array_map('trim', explode(',', $_SERVER[$header])) as $ip) {
@@ -416,22 +405,28 @@ class WecantrackApp {
     }
 
     /**
-     * We cache the affiliate url patterns so that we do not have to send every URL to the WeCanTrack API
-     * @param $api_key
-     * @param bool $forceRefresh
-     * @return bool|mixed|void|null
+     * Retrieves domain patterns from the WeCanTrack API or cache.
+     * @param string  $api_key       The API key used to authenticate with the WeCanTrack API.
+     * @param bool    $forceRefresh  Optional. Whether to force a refresh from the API regardless of cache. Default false.
+     *
+     * @return array|false Returns an associative array containing domain patterns (must include `origins` key) on success,
+     *                     or false on failure.
      */
     private static function wecantrack_get_domain_patterns($api_key, $forceRefresh = false) {
         try {
-            $domain_patterns = unserialize(get_option('wecantrack_domain_patterns'));
+            $domain_patterns = maybe_unserialize(get_option('wecantrack_domain_patterns'));
             $wecantrack_fetch_expiration = (int) get_option('wecantrack_fetch_expiration');
 
             $expired = !$wecantrack_fetch_expiration || time() > $wecantrack_fetch_expiration;
 
             if ($expired || !isset($domain_patterns['origins']) || $forceRefresh) {
-                $response = wp_remote_get(WECANTRACK_API_BASE_URL . '/api/v1/domain_patterns?api_key=' . $api_key, array(
+                $response = wp_remote_get(WECANTRACK_API_BASE_URL . '/api/v1/domain_patterns?api_key=' . $api_key, [
                     'sslverify' => WecantrackHelper::get_sslverify_option()
-                ));
+                ]);
+
+                if (is_wp_error($response)) {
+                    throw new Exception($response->get_error_message());
+                }
 
                 $status = wp_remote_retrieve_response_code($response);
                 if ($status == 200) {
@@ -452,14 +447,27 @@ class WecantrackApp {
             $error_msg = [
                 'e_msg' => $e->getMessage()
             ];
-            error_log('WeCanTrack Plugin wecantrack_update_data_fetch() exception: ' . json_encode($error_msg));
-            update_option('wecantrack_domain_patterns', NULL);// maybe something went wrong with unserialize(), so clear it
+            error_log('[WeCanTrack] wecantrack_update_data_fetch() exception: ' . json_encode($error_msg));
+            update_option('wecantrack_domain_patterns', NULL);// maybe something went wrong with maybe_unserialize(), so clear it
             return false;
         }
 
         return $domain_patterns;
     }
 
+    /**
+     * Determines whether the session enabler feature is active.
+     * 
+     * If active: Enables plugin functionality for this session if the user visits a URL containing a special keyword.
+     *
+     * This method checks the `wecantrack_session_enabler` option from the database.
+     * If it's set and the current request URI contains the configured test URL, the plugin
+     * sets a session variable to enable tracking for the current session.
+     *
+     * Starts the PHP session if it's not already active.
+     *
+     * @return bool True if session enabler is active for the current session; false otherwise.
+     */
     private function session_enabler_is_turned_on()
     {
         // check if session enabler is on
@@ -468,7 +476,7 @@ class WecantrackApp {
         }
 
         // debugging ON (performance hit) - this only happens when the plugin is turned off and session enabler is on
-        if (!session_id()) {
+        if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
             session_start();
         }
 
@@ -486,20 +494,50 @@ class WecantrackApp {
         return false;
     }
 
-    // setHttpReferrer in the cookies,  fallback for users isn't available
-    private function setHttpReferrer()
+    /**
+     * Sets or updates the HTTP referrer cookies.
+     *
+     * If `$this->drop_referrer_cookie` is true, this method:
+     * - Copies the current value of `_wct_http_referrer_1` into `_wct_http_referrer_2` (as a backup).
+     * - Sets `_wct_http_referrer_1` to the current URL, valid for 4 hours.
+     *
+     * This is used to track the referrer chain across page visits.
+     *
+     * @return void
+     */
+    private function set_http_referrer()
     {
         if ($this->drop_referrer_cookie) {
+            $four_hours_from_now = time() + 14400;
+
             if (!empty($_COOKIE['_wct_http_referrer_1'])) {
                 $_COOKIE['_wct_http_referrer_2'] = $_COOKIE['_wct_http_referrer_1'];
-                setcookie('_wct_http_referrer_2', $_COOKIE['_wct_http_referrer_1'], time()+60*60*4, '/');
+                setcookie(
+                    '_wct_http_referrer_2', 
+                    $_COOKIE['_wct_http_referrer_1'], $four_hours_from_now, 
+                    '/'
+                );
             }
             $_COOKIE['_wct_http_referrer_1'] = self::current_url();
-            setcookie('_wct_http_referrer_1', $_COOKIE['_wct_http_referrer_1'], time()+60*60*4, '/');
+            setcookie(
+                '_wct_http_referrer_1', 
+                $_COOKIE['_wct_http_referrer_1'],
+                $four_hours_from_now,
+                '/'
+            );
         }
     }
 
-    public static function revertHttpReferrer($drop_referrer_cookie = true)
+    /**
+     * Restores the primary HTTP referrer cookie using the secondary referrer value.
+     *
+     * If the `$drop_referrer_cookie` flag is true and the `_wct_http_referrer_2` cookie is set,
+     * this method sets the `_wct_http_referrer_1` cookie to the same value, with a 4-hour expiry.
+     *
+     * @param bool $drop_referrer_cookie Whether the referrer cookie logic should be executed.
+     * @return void
+     */
+    public static function revert_http_referrer($drop_referrer_cookie = true)
     {
         if ($drop_referrer_cookie) {
             if (!empty($_COOKIE['_wct_http_referrer_2'])) {
@@ -508,6 +546,18 @@ class WecantrackApp {
         }
     }
 
+    /**
+     * Deletes HTTP referrer cookies if they match the given site URL.
+     *
+     * This method checks if the `_wct_http_referrer_1` or `_wct_http_referrer_2` cookies 
+     * are set and match the provided `$site_url`. If so, it clears those cookies.
+     * 
+     * If `_wct_http_referrer_2` does not match but `_wct_http_referrer_1` is already unset,
+     * it calls `revertHttpReferrer()` as a fallback mechanism.
+     *
+     * @param string $site_url The site URL to compare against stored referrer cookies.
+     * @return void
+     */
     private function delete_http_referrer_where_site_url($site_url)
     {
         if ($this->drop_referrer_cookie) {
@@ -515,12 +565,13 @@ class WecantrackApp {
                 $_COOKIE['_wct_http_referrer_1'] = null;
                 setcookie('_wct_http_referrer_1', '', time() - 3600);
             }
+
             if (!empty($_COOKIE['_wct_http_referrer_2']) && $_COOKIE['_wct_http_referrer_2'] == $site_url) {
                 $_COOKIE['_wct_http_referrer_2'] = null;
                 setcookie('_wct_http_referrer_2', '', time() - 3600);
             } else {
-                if (!$_COOKIE['_wct_http_referrer_1']) {
-                    self::revertHttpReferrer();
+                if (empty($_COOKIE['_wct_http_referrer_1'])) {
+                    self::revert_http_referrer();
                 }
             }
         }

@@ -1,75 +1,79 @@
-jQuery( document ).ready( function( $ ) {
-    "use strict";
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('wecantrack_ajax_form');
+    if (!form) return;
 
-    var $form = $('#wecantrack_ajax_form'),
-        $loading = $('#wecantrack_loading');
+    const loading = document.getElementById('wecantrack_loading');
+    const feedbackTop = document.getElementById('wecantrack_form_feedback_top');
+    const feedbackBottom = document.getElementById('wecantrack_form_feedback_bottom'); // if used
+    let busy = 0;
 
-    var busy = 0;
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        clearMessages();
 
-    // submitting the form to validate API Key and or save information
-    $form.submit( function(event) {
-        clear_messages();
-
-        event.preventDefault(); // Prevent the default form submit.
         if (busy) return;
         busy = 1;
-        $loading.show();
-        // serialize the form data
-        var ajax_form_data = $form.serialize();
-        //add our own ajax check as X-Requested-With is not always reliable
-        ajax_form_data = ajax_form_data+'&ajaxrequest=true&submit=Submit+Form';
+        loading.style.display = 'block';
 
-        $.ajax({
-            url: params.ajaxurl, // domain/wp-admin/admin-ajax.php
-            type: 'post',
-            data: ajax_form_data
-        }).done( function( response ) { // response from the PHP action
-            response = JSON.parse(response);
-            console.log(response);
-            if (typeof response.error !== 'undefined' ) {
-                error_message(params.lang_invalid_request + ': ' + response.error);
+        const formData = new FormData(form);
+        formData.append('ajaxrequest', 'true');
+        formData.append('submit', 'Submit Form');
+
+        fetch(params.ajaxurl, {
+            method: 'POST',
+            body: new URLSearchParams(formData)
+        })
+        .then(response => response.json())
+        .then(response => {
+            if (typeof response.error !== 'undefined') {
+                errorMessage(params.lang_invalid_request + ': ' + response.error);
             } else {
-                //success
-                success_message(params.lang_changes_saved);
+                successMessage(params.lang_changes_saved);
             }
-        }).fail( function() { // something went wrong
-            error_message(params.lang_something_went_wrong);
-        }).always( function() { // after all this time?
-            // event.target.reset();
+        })
+        .catch(() => {
+            errorMessage(params.lang_something_went_wrong);
+        })
+        .finally(() => {
             busy = 0;
-            $loading.hide();
-            if (user_passed_prerequisites()) {
-                $('.wecantrack-snippet.hidden, .wecantrack-plugin-status.hidden, #wecantrack_ajax_form .submit').removeClass('hidden');
+            loading.style.display = 'none';
+            if (userPassedPrerequisites()) {
+                document.querySelectorAll('.wecantrack-snippet.hidden, .wecantrack-plugin-status.hidden, #wecantrack_ajax_form .submit.hidden').forEach(el => {
+                    el.classList.remove('hidden');
+                });
 
-                if ($($plugin_status_checked.selector).val() === '0') {
-                    $('.wecantrack-session-enabler.hidden').removeClass('hidden');
+                const pluginStatusChecked = document.querySelector('.wecantrack-plugin-status input[name="wecantrack_plugin_status"]:checked');
+                if (pluginStatusChecked && pluginStatusChecked.value === '0') {
+                    document.querySelectorAll('.wecantrack-session-enabler.hidden').forEach(el => {
+                        el.classList.remove('hidden');
+                    });
                 }
             }
         });
     });
 
-    function clear_messages() {
-        $("#wecantrack_form_feedback_top").html("");
-        $("#wecantrack_form_feedback_bottom").html("");
+    function clearMessages() {
+        if (feedbackTop) feedbackTop.innerHTML = '';
+        if (feedbackBottom) feedbackBottom.innerHTML = '';
     }
 
-    // display error message (overwrites)
-    function error_message(message, position = 'top') {
-        clear_messages();
-        if (position === 'top') {
-            $("#wecantrack_form_feedback_top").html("<h2 class='wecantrack-text-danger'>" + message + "</h2><br>");
-        } else {
-            $("#wecantrack_form_feedback_bottom").html("<h2 class='wecantrack-text-danger'>" + message + "</h2><br>");
+    function errorMessage(message, position = 'top') {
+        clearMessages();
+        const container = position === 'top' ? feedbackTop : feedbackBottom;
+        if (container) {
+            container.innerHTML = `<h2 class="wecantrack-text-danger">${message}</h2><br>`;
         }
     }
 
-    // display success message (overwrites)
-    function success_message(message, position = 'top') {
-        clear_messages();
-        if (position === 'top') {
-            $("#wecantrack_form_feedback_top").html("<h2 class='wecantrack-text-success'>"+message+"</h2><br>");
-        } else {
-            $("#wecantrack_form_feedback_bottom").html("<h2 class='wecantrack-text-success'>"+message+"</h2><br>");
+    function successMessage(message, position = 'top') {
+        clearMessages();
+        const container = position === 'top' ? feedbackTop : feedbackBottom;
+        if (container) {
+            container.innerHTML = `<h2 class="wecantrack-text-success">${message}</h2><br>`;
         }
+    }
+
+    function userPassedPrerequisites() {
+        return document.querySelectorAll('.wecantrack-prerequisites .dashicons-yes').length >= 2;
     }
 });
