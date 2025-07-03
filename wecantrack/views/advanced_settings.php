@@ -6,7 +6,7 @@ $wecantrack_script = get_option('wecantrack_snippet');
 $wecantrack_referrer_cookie_enabled = $wecantrack_referrer_cookie_disabled = '';
 
 $wecantrack_referrer_cookie_status = get_option('wecantrack_referrer_cookie_status') ? true : false;
-$wecantrack_ssl_disabled = (bool) $wecantrack_storage['disable_ssl'] ?? false;
+$wecantrack_ssl_disabled = (bool) ($wecantrack_storage['disable_ssl'] ?? false);
 $wecantrack_can_redirect_through_parameter_status = false;
 
 $wecantrack_include_script = !empty($wecantrack_storage['include_script']);
