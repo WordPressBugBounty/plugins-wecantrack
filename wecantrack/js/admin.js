@@ -102,9 +102,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 success_message(params.lang_valid_api_key + '<br>' + params.lang_changes_saved);
                 current_key = key;
                 check_prerequisites(response);
+                document.querySelector('#wecantrack_ajax_form .submit.hidden')?.classList.remove('hidden');
             }
         }).catch(() => {
             error_message(params.lang_something_went_wrong);
+            document.querySelector('#wecantrack_ajax_form .submit')?.classList.add('hidden');
         }).finally(() => {
             busy = 0;
             $loading.style.display = 'none';

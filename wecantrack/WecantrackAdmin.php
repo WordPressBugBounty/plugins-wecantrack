@@ -40,11 +40,11 @@ class WecantrackAdmin {
 
                 try {
                     WecantrackHelper::update_tracking_code($api_key, $domainURL);
+                    WecantrackHelper::update_user_website_information($api_key, $domainURL);
                 } catch (\Exception $e) {
                     error_log('WecantrackAdmin update_tracking_code error: ' . $e->getMessage());
                 }
 
-                WecantrackHelper::update_user_website_information($api_key, $domainURL);
                 update_option('wecantrack_version', WECANTRACK_VERSION);
             }
         }
@@ -120,13 +120,12 @@ class WecantrackAdmin {
 
         try {
             WecantrackHelper::update_tracking_code($api_key, $domainURL);
+            WecantrackHelper::update_user_website_information($api_key, $domainURL);
             $data['has_website'] = true;
         } catch (\Exception $e) {
             $data['has_website'] = false;
             error_log('[WeCanTrack] the_form_response() e_msg:'.$e->getMessage());
         }
-
-        WecantrackHelper::update_user_website_information($api_key, $domainURL);
 
         if (sanitize_text_field($userInput['wecantrack_submit_type']) === 'verify') {// store just api key
             update_option('wecantrack_api_key', $api_key);

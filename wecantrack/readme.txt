@@ -4,7 +4,7 @@ Tags: affiliate conversion tracking, google ads integration, google analytics in
 Requires at least: 4.6
 Tested up to: 6.7.1
 Requires PHP: 7.4
-Stable tag: 2.0.2
+Stable tag: 2.0.3
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -57,8 +57,11 @@ No, please contact support@wecantrack.com if you want us to support this.
 
 == Changelog ==
 
+= 2.0.3 - 7th July 2025 =
+ * Fix critical errors and warnings: added proper error handling and logging for thrown exceptions
+
 = 2.0.2 - 3rd July 2025 =
- * fix Warning: Undefined array key "disable_ssl"
+ * Fix Warning: Undefined array key "disable_ssl"
 
 = 2.0.1 - 19th June 2025 =
  * Removed redirect through parameter functionality

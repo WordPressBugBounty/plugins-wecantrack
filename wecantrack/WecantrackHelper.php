@@ -58,7 +58,7 @@ class WecantrackHelper {
         $code = wp_remote_retrieve_response_code($response);
     
         if ($code === 404) {
-            throw new \Exception(
+            throw new \UnexpectedValueException(
                 sprintf(
                     // translators: %s is the website URL or identifier.
                     esc_html__('Website `%s` not found in your We Can Track account', 'wecantrack'),
@@ -66,7 +66,7 @@ class WecantrackHelper {
                 )
             );
         } else if ($code !== 200) {
-            throw new \Exception(
+            throw new \RuntimeException(
                 sprintf(
                     // translators: %s is the full error message or error code from the request.
                     esc_html__('Bad request when updating website information %s', 'wecantrack'),
