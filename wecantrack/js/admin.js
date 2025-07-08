@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
             typeof response.data.has_website === 'undefined' ||
             typeof response.data.features === 'undefined'
         ) {
-            error_message(params.lang_request_wrong);
+            error_message(wecantrackParams.lang_request_wrong);
             return;
         }
 
@@ -40,20 +40,20 @@ document.addEventListener('DOMContentLoaded', function () {
         const netText = document.querySelector('.wecantrack-preq-network-account span');
         if (response.data.total_active_network_accounts > 0) {
             netIcon.classList.replace('dashicons-no', 'dashicons-yes');
-            netText.innerHTML = params.lang_added_one_active_network;
+            netText.innerHTML = wecantrackParams.lang_added_one_active_network;
         } else {
             netIcon.classList.replace('dashicons-yes', 'dashicons-no');
-            netText.innerHTML = `<a target="_blank" href="https://app.wecantrack.com/user/data-source/networks">${params.lang_not_added_one_active_network}</a>`;
+            netText.innerHTML = `<a target="_blank" href="https://app.wecantrack.com/user/data-source/networks">${wecantrackParams.lang_not_added_one_active_network}</a>`;
         }
 
         const featIcon = document.querySelector('.wecantrack-preq-feature i');
         const featText = document.querySelector('.wecantrack-preq-feature span');
         if (response.data.has_website) {
             featIcon.classList.replace('dashicons-no', 'dashicons-yes');
-            featText.textContent = params.lang_website_added;
+            featText.textContent = wecantrackParams.lang_website_added;
         } else {
             featIcon.classList.replace('dashicons-yes', 'dashicons-no');
-            featText.innerHTML = `<a target="_blank" href="https://app.wecantrack.com/user/websites/create?website=${params.site_url}">${params.lang_website_not_added}</a>`;
+            featText.innerHTML = `<a target="_blank" href="https://app.wecantrack.com/user/websites/create?website=${wecantrackParams.site_url}">${wecantrackParams.lang_website_not_added}</a>`;
         }
     }
 
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     $submit_verified.addEventListener('click', function () {
-        $submit_type.value = params.lang_verified;
+        $submit_type.value = wecantrackParams.lang_verified;
     });
 
     $form.addEventListener('submit', function (event) {
@@ -88,24 +88,24 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('ajaxrequest', 'true');
         formData.append('submit', 'Submit Form');
 
-        fetch(params.ajaxurl, {
+        fetch(wecantrackParams.ajaxurl, {
             method: 'POST',
             body: formData
         }).then(res => res.json()).then(response => {
             if (response.data?.error?.includes('Unauthorised')) {
-                error_message(params.lang_invalid_api_key);
+                error_message(wecantrackParams.lang_invalid_api_key);
                 reset_form();
             } else if (response.data?.error) {
                 error_message(response.data.error);
                 reset_form();
             } else {
-                success_message(params.lang_valid_api_key + '<br>' + params.lang_changes_saved);
+                success_message(wecantrackParams.lang_valid_api_key + '<br>' + wecantrackParams.lang_changes_saved);
                 current_key = key;
                 check_prerequisites(response);
                 document.querySelector('#wecantrack_ajax_form .submit.hidden')?.classList.remove('hidden');
             }
         }).catch(() => {
-            error_message(params.lang_something_went_wrong);
+            error_message(wecantrackParams.lang_something_went_wrong);
             document.querySelector('#wecantrack_ajax_form .submit')?.classList.add('hidden');
         }).finally(() => {
             busy = 0;

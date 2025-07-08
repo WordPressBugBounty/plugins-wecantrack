@@ -322,15 +322,15 @@ class WecantrackAdmin {
         switch ($page) {
             case 'wecantrack':
                 wp_enqueue_script( 'wecantrack_admin_js', WECANTRACK_URL.'/js/admin.js', [], $wecantrack_version, false);
-                wp_localize_script( 'wecantrack_admin_js', 'params', $params);
+                wp_localize_script( 'wecantrack_admin_js', 'wecantrackParams', $params);
                 break;
             case 'wecantrack-redirect-page':
                 wp_enqueue_script( 'wecantrack_admin_js', WECANTRACK_URL.'/js/redirect_page.js', [], $wecantrack_version, false);
-                wp_localize_script( 'wecantrack_admin_js', 'params', $params);
+                wp_localize_script( 'wecantrack_admin_js', 'wecantrackParams', $params);
                 break;
             case 'wecantrack-advanced-settings':
                 wp_enqueue_script( 'wecantrack_admin_js', WECANTRACK_URL.'/js/advanced_settings.js', [], $wecantrack_version, false);
-                wp_localize_script( 'wecantrack_admin_js', 'params', $params);
+                wp_localize_script( 'wecantrack_admin_js', 'wecantrackParams', $params);
                 break;
         }
     }
