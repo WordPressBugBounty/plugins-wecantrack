@@ -138,6 +138,12 @@ class WecantrackHelper {
      */
     public static function useragent_is_bot($user_agent)
     {
+        if (!is_string($user_agent)) {
+            return false;
+        }
+
+        $delimiter = '~';
+
         $bots = apply_filters('wecantrack_known_bots', [
             'bot/',
             'crawler',
@@ -152,8 +158,11 @@ class WecantrackHelper {
             'bing'
         ]);
 
-        $pattern = implode('|', array_map('preg_quote', $bots));
-        return preg_match("/($pattern)/i", $user_agent) === 1;
+        $pattern = implode('|', array_map(function ($bot) use ($delimiter) {
+            return preg_quote($bot, $delimiter);
+        }, $bots));
+
+        return preg_match("{$delimiter}({$pattern}){$delimiter}i", $user_agent) === 1;
     }
 
     /**

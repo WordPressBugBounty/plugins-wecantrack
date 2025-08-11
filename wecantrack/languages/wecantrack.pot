@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the WeCanTrack plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: WeCanTrack 2.0.4\n"
+"Project-Id-Version: WeCanTrack 4.0.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wecantrack\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-06-24T19:00:31+00:00\n"
+"POT-Creation-Date: 2025-08-11T14:54:49+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.4.0\n"
 "X-Domain: wecantrack\n"
@@ -152,49 +152,49 @@ msgstr ""
 msgid "If you're experiencing any bugs caused by this plugin, disable the plugin and contact us at support@wecantrack.com"
 msgstr ""
 
-#: WecantrackAdmin.php:304
+#: WecantrackAdmin.php:303
 msgid "Something went wrong with the request"
 msgstr ""
 
-#: WecantrackAdmin.php:305
+#: WecantrackAdmin.php:304
 msgid "Added at least 1 active network account"
 msgstr ""
 
-#: WecantrackAdmin.php:306
+#: WecantrackAdmin.php:305
 msgid "You have not added at least 1 active network account. To add a network, click here."
 msgstr ""
 
 #. translators: %s: The website URL
-#: WecantrackAdmin.php:308
+#: WecantrackAdmin.php:307
 msgid "Website %s added"
 msgstr ""
 
 #. translators: %s: The website URL
-#: WecantrackAdmin.php:310
+#: WecantrackAdmin.php:309
 msgid "You have not added the website %s to our platform. To add the website, click here."
 msgstr ""
 
-#: WecantrackAdmin.php:311
+#: WecantrackAdmin.php:310
 msgid "verified"
 msgstr ""
 
-#: WecantrackAdmin.php:312
+#: WecantrackAdmin.php:311
 msgid "Invalid API Key"
 msgstr ""
 
-#: WecantrackAdmin.php:313
+#: WecantrackAdmin.php:312
 msgid "Invalid Request"
 msgstr ""
 
-#: WecantrackAdmin.php:314
+#: WecantrackAdmin.php:313
 msgid "Valid API Key"
 msgstr ""
 
-#: WecantrackAdmin.php:315
+#: WecantrackAdmin.php:314
 msgid "Your changes have been saved"
 msgstr ""
 
-#: WecantrackAdmin.php:316
+#: WecantrackAdmin.php:315
 msgid "Something went wrong."
 msgstr ""
 

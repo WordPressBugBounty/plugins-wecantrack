@@ -19,20 +19,20 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('ajaxrequest', 'true');
         formData.append('submit', 'Submit Form');
 
-        fetch(params.ajaxurl, {
+        fetch(wecantrackParams.ajaxurl, {
             method: 'POST',
             body: new URLSearchParams(formData)
         })
         .then(response => response.json())
         .then(response => {
             if (typeof response.error !== 'undefined') {
-                errorMessage(params.lang_invalid_request + ': ' + response.error);
+                errorMessage(wecantrackParams.lang_invalid_request + ': ' + response.error);
             } else {
-                successMessage(params.lang_changes_saved);
+                successMessage(wecantrackParams.lang_changes_saved);
             }
         })
         .catch(() => {
-            errorMessage(params.lang_something_went_wrong);
+            errorMessage(wecantrackParams.lang_something_went_wrong);
         })
         .finally(() => {
             busy = 0;
