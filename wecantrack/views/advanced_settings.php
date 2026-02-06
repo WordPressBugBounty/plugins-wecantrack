@@ -9,7 +9,7 @@ $wecantrack_referrer_cookie_status = get_option('wecantrack_referrer_cookie_stat
 $wecantrack_ssl_disabled = (bool) ($wecantrack_storage['disable_ssl'] ?? false);
 $wecantrack_can_redirect_through_parameter_status = false;
 
-$wecantrack_include_script = !empty($wecantrack_storage['include_script']);
+$wecantrack_include_script = !isset($wecantrack_storage['include_script']) || $wecantrack_storage['include_script'] == true;
 ?>
 
 <div class="wrap">
@@ -71,7 +71,7 @@ $wecantrack_include_script = !empty($wecantrack_storage['include_script']);
                             </p>
                         </fieldset>
 
-                        <p class="description">We use the cookie `_wct_http_referrer_1` and `_wct_http_referrer_2` to increase the coverage for populating the Clickout URL. <b>Note: This cookie gets set on the server side, if you have caching in place that checks on cookie values please filter these cookies out or disable this setting.</b></p>
+                        <p class="description">We use the cookie `_wct_http_referrer_1` and `_wct_http_referrer_2` to increase the coverage for populating the Clickout URL. <b>Note: This cookie gets set on the server side, if you have caching in place that checks on cookie values please filter these cookies out or disable this setting. This setting is only useful for specific use cases. Please only use it if your Clickout URL coverage is low. When in doubt please reach out to our support.</b></p>
                     </td>
                 </tr>
 
