@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) { exit; }
 $wecantrack_storage = json_decode(get_option('wecantrack_storage'), true);
 $wecantrack_script = get_option('wecantrack_snippet');
 

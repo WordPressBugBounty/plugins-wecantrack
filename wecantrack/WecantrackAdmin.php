@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) { exit; }
 
 require_once WECANTRACK_PATH . '/includes/WecantrackPermissions.php';
 
@@ -72,23 +73,38 @@ class WecantrackAdmin {
      * Because WordPress does not provide a built-in hook for detecting plugin updates, we check on each admin load to ensure required options exist and migrations are applied.
      */
     public function check_migrations() {
-        if (!get_option('wecantrack_custom_redirect_html')) {
-            add_option('wecantrack_custom_redirect_html');
-        }
-        if (!get_option('wecantrack_redirect_options')) {
-            add_option('wecantrack_redirect_options');
-        }
-        if (!get_option('wecantrack_website_options')) {
-            add_option('wecantrack_website_options');
-        }
-        if (!get_option('wecantrack_version')) {
-            add_option('wecantrack_version');
-        }
-        if (!get_option('wecantrack_referrer_cookie_status')) {
-            add_option('wecantrack_referrer_cookie_status', 0);
-        }
-        if (!get_option('wecantrack_storage')) {
-            add_option('wecantrack_storage');
+        $required = [
+            'wecantrack_api_key'                => null,
+            'wecantrack_plugin_status'          => 0,
+            'wecantrack_fetch_expiration'       => null,
+            'wecantrack_snippet'                => null,
+            'wecantrack_session_enabler'        => null,
+            'wecantrack_snippet_version'        => null,
+            'wecantrack_domain_patterns'        => null,
+            'wecantrack_custom_redirect_html'   => null,
+            'wecantrack_redirect_options'       => null,
+            'wecantrack_website_options'        => null,
+            'wecantrack_version'                => null,
+            'wecantrack_storage'                => null,
+            'wecantrack_referrer_cookie_status' => 0,
+        ];
+
+        global $wpdb;
+        $existing = $wpdb->get_col(
+            "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE 'wecantrack_%'"
+        );
+
+        $missing = array_diff_key($required, array_flip($existing));
+
+        if (!empty($missing)) {
+            foreach ($missing as $option => $default) {
+                // Preserve any value still held in object cache (e.g. Redis)
+                $cached = get_option($option);
+                $value = ($cached !== false) ? $cached : $default;
+                wp_cache_delete($option, 'options');
+                wp_cache_delete('alloptions', 'options');
+                add_option($option, $value);
+            }
         }
     }
 
@@ -221,7 +237,7 @@ class WecantrackAdmin {
     public function settings()
     {
         if (! $this->wecantrack_permissions->current_user_can_manage_options()) {
-            require_once WECANTRACK_PATH . '/views/unauthorized.php';
+            require WECANTRACK_PATH . '/views/unauthorized.php';
             return;
         }
 
@@ -241,7 +257,7 @@ class WecantrackAdmin {
     public function redirect_page()
     {
         if (! $this->wecantrack_permissions->current_user_can_manage_options()) {
-            require_once WECANTRACK_PATH . '/views/unauthorized.php';
+            require WECANTRACK_PATH . '/views/unauthorized.php';
             return;
         }
 
@@ -261,7 +277,7 @@ class WecantrackAdmin {
     public function advanced_settings()
     {
         if (! $this->wecantrack_permissions->current_user_can_manage_options()) {
-            require_once WECANTRACK_PATH . '/views/unauthorized.php';
+            require WECANTRACK_PATH . '/views/unauthorized.php';
             return;
         }
 

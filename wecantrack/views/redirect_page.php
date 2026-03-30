@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) { exit; }
 $option = maybe_unserialize(get_option('wecantrack_redirect_options'));
 $delay = $option['delay'] ?? null;
 $url_contains = $option['url_contains'] ?? null;
