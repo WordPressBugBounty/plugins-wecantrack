@@ -1,5 +1,4 @@
 <?php
-if (!defined('ABSPATH')) { exit; }
 
 require_once WECANTRACK_PATH . '/includes/WecantrackPermissions.php';
 
@@ -222,7 +221,7 @@ class WecantrackAdmin {
     public function settings()
     {
         if (! $this->wecantrack_permissions->current_user_can_manage_options()) {
-            require WECANTRACK_PATH . '/views/unauthorized.php';
+            require_once WECANTRACK_PATH . '/views/unauthorized.php';
             return;
         }
 
@@ -242,7 +241,7 @@ class WecantrackAdmin {
     public function redirect_page()
     {
         if (! $this->wecantrack_permissions->current_user_can_manage_options()) {
-            require WECANTRACK_PATH . '/views/unauthorized.php';
+            require_once WECANTRACK_PATH . '/views/unauthorized.php';
             return;
         }
 
@@ -262,7 +261,7 @@ class WecantrackAdmin {
     public function advanced_settings()
     {
         if (! $this->wecantrack_permissions->current_user_can_manage_options()) {
-            require WECANTRACK_PATH . '/views/unauthorized.php';
+            require_once WECANTRACK_PATH . '/views/unauthorized.php';
             return;
         }
 

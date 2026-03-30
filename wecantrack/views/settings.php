@@ -1,5 +1,4 @@
 <?php
-if (!defined('ABSPATH')) { exit; }
 //nonce
 $wecantrack_nonce = wp_create_nonce('wecantrack_form_nonce');
 

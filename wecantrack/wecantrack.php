@@ -3,12 +3,12 @@
  * Plugin Name:       WeCanTrack
  * Plugin URI:        https://wecantrack.com/wordpress
  * Description:       Integrate all your affiliate sales into Google Analytics, Google Ads, Facebook, Data Studio, and more!
- * Version:           5.0.0
+ * Version:           4.0.2
  * Author:            WeCanTrack
  * Author URI:        https://wecantrack.com
  * Requires PHP:      7.4
  * Requires at least: 5.0
- * Tested up to:      6.9
+ * Tested up to:      6.8
  * License:           GPLv3
  * License URI:       https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain:       wecantrack
@@ -17,7 +17,7 @@
 
 if (!defined('ABSPATH')) { die('You are not allowed to call this page directly.'); }
 
-define('WECANTRACK_VERSION', '5.0.0');
+define('WECANTRACK_VERSION', '4.0.2');
 define('WECANTRACK_PLUGIN_NAME', 'wecantrack');
 define('WECANTRACK_PATH', plugin_dir_path(__FILE__));
 define('WECANTRACK_URL', plugin_dir_url(__FILE__));
@@ -54,36 +54,6 @@ register_activation_hook(__FILE__, 'wecantrack_plugin_activation');
 register_deactivation_hook(__FILE__, 'wecantrack_plugin_deactivation');
 register_uninstall_hook(__FILE__, 'wecantrack_plugin_uninstall');
 add_action('upgrader_process_complete', 'wecantrack_plugin_upgraded', 10, 2);
-add_action('wecantrack_cron_refresh', 'wecantrack_refresh_website_options');
-
-// Ensure cron is scheduled for existing installs that updated without reactivating
-if (is_admin() && !wp_next_scheduled('wecantrack_cron_refresh')) {
-    wp_schedule_event(time(), 'hourly', 'wecantrack_cron_refresh');
-}
-
-if (!function_exists('wecantrack_refresh_website_options')) {
-    /**
-     * Cron callback that refreshes website options and tracking code from the WeCanTrack API.
-     *
-     * @return void
-     */
-    function wecantrack_refresh_website_options()
-    {
-        $api_key = get_option('wecantrack_api_key');
-        if (empty($api_key)) {
-            return;
-        }
-
-        $domainURL = home_url();
-
-        try {
-            WecantrackHelper::update_tracking_code($api_key, $domainURL);
-            WecantrackHelper::update_user_website_information($api_key, $domainURL);
-        } catch (\Exception $e) {
-            error_log('[WeCanTrack] Cron refresh error: ' . $e->getMessage());
-        }
-    }
-}
 
 if (!function_exists('wecantrack_plugin_activation')) {
     /**
@@ -108,10 +78,6 @@ if (!function_exists('wecantrack_plugin_activation')) {
         add_option('wecantrack_version', null, null);
         add_option('wecantrack_storage', null, null);
         add_option('wecantrack_referrer_cookie_status', 0, null);
-
-        if (!wp_next_scheduled('wecantrack_cron_refresh')) {
-            wp_schedule_event(time(), 'hourly', 'wecantrack_cron_refresh');
-        }
     }
 }
 
@@ -126,7 +92,6 @@ if (!function_exists('wecantrack_plugin_deactivation')) {
     function wecantrack_plugin_deactivation()
     {
         update_option('wecantrack_plugin_status', 0);
-        wp_clear_scheduled_hook('wecantrack_cron_refresh');
     }
 }
 
@@ -336,7 +301,7 @@ if (!function_exists('wecantrack_handle_deprecated_go_redirect')) {
         echo '<p>This affiliate link redirect method is no longer supported.</p>';
         echo '<p>If you are the site admin, please clear your website and CDN caches to resolve issues with outdated or broken outgoing links.</p>';
         if (!empty($_GET['afflink'])) {
-            echo '<p><a href="' . esc_url($_GET['afflink']) . '">Go to offer</a></p>';
+            echo '<p><a href="' . esc_url_raw($_GET['afflink']) . '">Go to offer</a></p>';
         }
         echo '<p><a href="' . esc_url(home_url()) . '">Go back to homepage</a></p>';
 
