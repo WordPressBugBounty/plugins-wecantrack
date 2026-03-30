@@ -4,7 +4,7 @@ Tags: affiliate conversion tracking, google ads integration, google analytics in
 Requires at least: 4.6
 Tested up to: 6.7.1
 Requires PHP: 7.4
-Stable tag: 4.0.2
+Stable tag: 5.0.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -56,6 +56,15 @@ No, please contact support@wecantrack.com if you want us to support this.
 == Upgrade Notice ==
 
 == Changelog ==
+
+= 5.0.0 - 12th March 2025 =
+ * Add v2 script support, test suite, and bundle script
+ * Use wct-3.com as default script domain with proxy override
+ * Add twicedaily cron to refresh website options and tracking code
+ * Secure debug endpoint with HMAC-SHA256 authentication
+ * Security hardening and permission tests
+ * Security fixes: API key in header, rate limiting, SSL verify, cron
+ * Add standalone monetisation script for v2 when enabled and not bundled
 
 = 4.0.2 - 11th November 2025 =
  * Fix advanced form. The Include WCT Script shows false on null but should be true on null

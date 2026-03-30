@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) { exit; }
 
 /**
  * Class WecantrackApp
@@ -9,7 +10,7 @@
  * @package Wecantrack
  */
 class WecantrackApp {
-    const CURL_TIMEOUT_S = 5, FETCH_DOMAIN_PATTERN_IN_HOURS = 3;
+    const CURL_TIMEOUT_S = 5, FETCH_DOMAIN_PATTERN_IN_HOURS = 3, WCT_SCRIPT_DOMAIN = 'wct-3.com';
 
     private $api_key, $drop_referrer_cookie;
 
@@ -64,7 +65,10 @@ class WecantrackApp {
      * @return void This method exits execution after echoing JSON output.
      */
     private static function if_debug_show_plugin_config() {
-        if (isset($_GET['_wct_config']) && $_GET['_wct_config'] === md5(date('Y-m-d'))) {
+        $api_key = get_option('wecantrack_api_key');
+        $expected = $api_key ? hash_hmac('sha256', gmdate('Y-m-d'), $api_key) : null;
+
+        if ($expected && isset($_GET['_wct_config']) && hash_equals($expected, $_GET['_wct_config'])) {
             header('X-Robots-Tag: noindex', true);
             header('Content-Type: application/json', true);
 
@@ -96,7 +100,7 @@ class WecantrackApp {
 
                     $refreshed = 1;
                 }
-                set_transient('wecantrack_lock_cache_refresh', 1, 10);
+                set_transient('wecantrack_lock_cache_refresh', 1, 60);
             }
 
             echo json_encode([
@@ -154,6 +158,9 @@ class WecantrackApp {
      * @return void
      */
     public static function set_no_cache_headers() {
+        if (headers_sent()) {
+            return;
+        }
         header('Cache-Control: no-store, no-cache, max-age=0');//HTTP 1.1
         header('Pragma: no-cache');//HTTP 1.0
     }
@@ -203,6 +210,25 @@ class WecantrackApp {
      * @return void
      */
     public function insert_snippet() {
+        $raw = get_option('wecantrack_website_options');
+        $website_options = is_array($raw) ? $raw : json_decode($raw, true);
+
+        if (!empty($website_options) && ($website_options['script_version'] ?? null) == 2) {
+            $property_id = $website_options['property_id'] ?? null;
+
+            if (!empty($property_id)) {
+                $base = !empty($website_options['proxy']) ? $website_options['proxy'] : 'https://' . self::WCT_SCRIPT_DOMAIN;
+                $src = $base . '/wct.js?property_id=' . urlencode($property_id);
+                echo '<script src="' . esc_url($src) . '" async></script>';
+
+                if (!empty($website_options['monetisation_enabled']) && empty($website_options['monetisation_bundled'])) {
+                    $monetisation_src = $base . '/wct.js?property_id=' . urlencode($property_id) . '&standalone=monetisation';
+                    echo '<script src="' . esc_url($monetisation_src) . '" async></script>';
+                }
+            }
+            return;
+        }
+
         if (empty($this->snippet)) {
             return;
         }
@@ -302,7 +328,7 @@ class WecantrackApp {
                 'redirect_url' => self::current_url(),
                 '_ga' => !empty($_COOKIE['_ga']) ? sanitize_text_field($_COOKIE['_ga']) : null,
                 '_wctrck' => $wctCookie,
-                'ua' => $_SERVER['HTTP_USER_AGENT'],
+                'ua' => sanitize_text_field($_SERVER['HTTP_USER_AGENT']),
                 'ip' => self::get_user_real_ip(),
             ];
 
@@ -420,7 +446,10 @@ class WecantrackApp {
             $expired = !$wecantrack_fetch_expiration || time() > $wecantrack_fetch_expiration;
 
             if ($expired || !isset($domain_patterns['origins']) || $forceRefresh) {
-                $response = wp_remote_get(WECANTRACK_API_BASE_URL . '/api/v1/domain_patterns?api_key=' . $api_key, [
+                $response = wp_remote_get(WECANTRACK_API_BASE_URL . '/api/v1/domain_patterns', [
+                    'headers' => [
+                        'x-api-key' => $api_key,
+                    ],
                     'sslverify' => WecantrackHelper::get_sslverify_option()
                 ]);
 

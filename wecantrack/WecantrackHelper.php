@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) { exit; }
 
 /**
  * Class WecantrackHelper
@@ -53,6 +54,7 @@ class WecantrackHelper {
                 'Content-Type' => 'application/json',
                 'x-wp-version' => WECANTRACK_VERSION
             ],
+            'sslverify' => self::get_sslverify_option()
         ]);
 
         $code = wp_remote_retrieve_response_code($response);
