@@ -219,11 +219,12 @@ class WecantrackApp {
             if (!empty($property_id)) {
                 $base = !empty($website_options['proxy']) ? $website_options['proxy'] : 'https://' . self::WCT_SCRIPT_DOMAIN;
                 $src = $base . '/wct.js?property_id=' . urlencode($property_id);
-                echo '<script src="' . esc_url($src) . '" async></script>';
+                $extra_attrs = ($website_options['cookie_consent_provider'] ?? null) === 'cookiebot' ? ' data-cookieconsent="ignore"' : '';
+                echo '<script src="' . esc_url($src) . '" async' . $extra_attrs . '></script>';
 
                 if (!empty($website_options['monetisation_enabled']) && empty($website_options['monetisation_bundled'])) {
                     $monetisation_src = $base . '/wct.js?property_id=' . urlencode($property_id) . '&standalone=monetisation';
-                    echo '<script src="' . esc_url($monetisation_src) . '" async></script>';
+                    echo '<script src="' . esc_url($monetisation_src) . '" async' . $extra_attrs . '></script>';
                 }
             }
             return;

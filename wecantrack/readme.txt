@@ -4,7 +4,7 @@ Tags: affiliate conversion tracking, google ads integration, google analytics in
 Requires at least: 4.6
 Tested up to: 6.7.1
 Requires PHP: 7.4
-Stable tag: 5.0.1
+Stable tag: 5.0.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -56,6 +56,9 @@ No, please contact support@wecantrack.com if you want us to support this.
 == Upgrade Notice ==
 
 == Changelog ==
+
+= 5.0.2 - 1st June 2026 =
+ * Add `data-cookieconsent="ignore"` to v2 script tags when Cookiebot is the configured cookie consent provider
 
 = 5.0.1 - 30th March 2025 =
  * Fix options not persisting on hosts with object cache (e.g. Redis) when DB rows are missing

@@ -2,16 +2,16 @@
 # This file is distributed under the GPLv3.
 msgid ""
 msgstr ""
-"Project-Id-Version: WeCanTrack 5.0.1\n"
+"Project-Id-Version: WeCanTrack 5.0.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wecantrack\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-03-30T13:06:01+00:00\n"
+"POT-Creation-Date: 2026-06-04T09:28:27+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.11.0\n"
+"X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wecantrack\n"
 
 #. Plugin Name of the plugin
@@ -174,11 +174,13 @@ msgstr ""
 
 #. translators: %s: The website URL
 #: WecantrackAdmin.php:323
+#, php-format
 msgid "Website %s added"
 msgstr ""
 
 #. translators: %s: The website URL
 #: WecantrackAdmin.php:325
+#, php-format
 msgid "You have not added the website %s to our platform. To add the website, click here."
 msgstr ""
 
@@ -209,15 +211,18 @@ msgstr ""
 #. translators: %s is the website URL or identifier.
 #: WecantrackHelper.php:66
 #: WecantrackHelper.php:118
+#, php-format
 msgid "Website `%s` not found in your We Can Track account"
 msgstr ""
 
 #. translators: %s is the full error message or error code from the request.
 #: WecantrackHelper.php:74
+#, php-format
 msgid "Bad request when updating website information %s"
 msgstr ""
 
 #. translators: %s is the site URL or identifier.
 #: WecantrackHelper.php:126
+#, php-format
 msgid "Bad request when fetching website %s"
 msgstr ""
