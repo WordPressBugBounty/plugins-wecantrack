@@ -37,11 +37,8 @@ class WecantrackAdmin {
         $version = get_option('wecantrack_version');
         if ($api_key = get_option('wecantrack_api_key')) {
             if (empty($version) || $version !== WECANTRACK_VERSION) {
-                $domainURL = home_url();
-
                 try {
-                    WecantrackHelper::update_tracking_code($api_key, $domainURL);
-                    WecantrackHelper::update_user_website_information($api_key, $domainURL);
+                    WecantrackHelper::refresh_config_with_candidates($api_key, WecantrackHelper::get_candidate_site_urls());
                 } catch (\Exception $e) {
                     error_log('WecantrackAdmin update_tracking_code error: ' . $e->getMessage());
                 }
@@ -87,6 +84,7 @@ class WecantrackAdmin {
             'wecantrack_version'                => null,
             'wecantrack_storage'                => null,
             'wecantrack_referrer_cookie_status' => 0,
+            'wecantrack_website_override'       => null,
         ];
 
         global $wpdb;
@@ -132,11 +130,15 @@ class WecantrackAdmin {
             wp_send_json_error($data);
         }
 
-        $domainURL = home_url();
+        // Optional website chosen from the dropdown when home_url() isn't registered (e.g. staging).
+        $posted_override = isset($userInput['wecantrack_website_override'])
+            ? esc_url_raw($userInput['wecantrack_website_override'])
+            : null;
+
+        $candidates = WecantrackHelper::get_candidate_site_urls($posted_override, $data['websites'] ?? null);
 
         try {
-            WecantrackHelper::update_tracking_code($api_key, $domainURL);
-            WecantrackHelper::update_user_website_information($api_key, $domainURL);
+            WecantrackHelper::refresh_config_with_candidates($api_key, $candidates);
             $data['has_website'] = true;
         } catch (\Exception $e) {
             $data['has_website'] = false;

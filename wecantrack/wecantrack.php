@@ -3,7 +3,7 @@
  * Plugin Name:       WeCanTrack
  * Plugin URI:        https://wecantrack.com/wordpress
  * Description:       Integrate all your affiliate sales into Google Analytics, Google Ads, Facebook, Data Studio, and more!
- * Version:           5.0.2
+ * Version:           5.1.0
  * Author:            WeCanTrack
  * Author URI:        https://wecantrack.com
  * Requires PHP:      7.4
@@ -17,7 +17,7 @@
 
 if (!defined('ABSPATH')) { die('You are not allowed to call this page directly.'); }
 
-define('WECANTRACK_VERSION', '5.0.2');
+define('WECANTRACK_VERSION', '5.1.0');
 define('WECANTRACK_PLUGIN_NAME', 'wecantrack');
 define('WECANTRACK_PATH', plugin_dir_path(__FILE__));
 define('WECANTRACK_URL', plugin_dir_url(__FILE__));
@@ -74,11 +74,8 @@ if (!function_exists('wecantrack_refresh_website_options')) {
             return;
         }
 
-        $domainURL = home_url();
-
         try {
-            WecantrackHelper::update_tracking_code($api_key, $domainURL);
-            WecantrackHelper::update_user_website_information($api_key, $domainURL);
+            WecantrackHelper::refresh_config_with_candidates($api_key, WecantrackHelper::get_candidate_site_urls());
         } catch (\Exception $e) {
             error_log('[WeCanTrack] Cron refresh error: ' . $e->getMessage());
         }
@@ -108,6 +105,7 @@ if (!function_exists('wecantrack_plugin_activation')) {
         add_option('wecantrack_version', null, null);
         add_option('wecantrack_storage', null, null);
         add_option('wecantrack_referrer_cookie_status', 0, null);
+        add_option('wecantrack_website_override', null, null);
 
         if (!wp_next_scheduled('wecantrack_cron_refresh')) {
             wp_schedule_event(time(), 'hourly', 'wecantrack_cron_refresh');
@@ -154,6 +152,7 @@ if (!function_exists('wecantrack_plugin_uninstall')) {
         delete_option('wecantrack_version');
         delete_option('wecantrack_storage');
         delete_option('wecantrack_referrer_cookie_status');
+        delete_option('wecantrack_website_override');
     }
 }
 
@@ -182,10 +181,8 @@ if (!function_exists('wecantrack_plugin_upgraded')) {
                 }
     
                 // refetch the wecantrack script
-                $domainURL = home_url();
                 try {
-                    WecantrackHelper::update_tracking_code($api_key, $domainURL);
-                    WecantrackHelper::update_user_website_information($api_key, $domainURL);
+                    WecantrackHelper::refresh_config_with_candidates($api_key, WecantrackHelper::get_candidate_site_urls());
                 } catch (\Exception $e) {
                     error_log('[WeCanTrack] Error occurred during plugin upgrade. Message: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
                 }

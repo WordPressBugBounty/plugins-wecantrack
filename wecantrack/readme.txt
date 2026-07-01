@@ -4,7 +4,7 @@ Tags: affiliate conversion tracking, google ads integration, google analytics in
 Requires at least: 4.6
 Tested up to: 6.7.1
 Requires PHP: 7.4
-Stable tag: 5.0.2
+Stable tag: 5.1.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -56,6 +56,9 @@ No, please contact support@wecantrack.com if you want us to support this.
 == Upgrade Notice ==
 
 == Changelog ==
+
+= 5.1.0 - 1st July 2026 =
+ * Add website fallback for installs whose domain isn't registered in your WeCanTrack account (e.g. staging sites). When the site URL isn't found, a single website is selected automatically, or you can pick one from a dropdown; the choice is remembered and cleared automatically once the site's real domain matches again.
 
 = 5.0.2 - 1st June 2026 =
  * Add `data-cookieconsent="ignore"` to v2 script tags when Cookiebot is the configured cookie consent provider

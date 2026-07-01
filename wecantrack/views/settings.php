@@ -64,6 +64,18 @@ $wecantrack_plugin_status = get_option('wecantrack_plugin_status') ? true : fals
                     </td>
                 </tr>
 
+                <tr class="wecantrack-website-override hidden">
+                    <th scope="row">
+                        <label for="wecantrack_website_override"><?php echo esc_html__('Select your website', 'wecantrack'); ?></label>
+                    </th>
+                    <td>
+                        <select id="wecantrack_website_override" name="wecantrack_website_override" style="width:300px;" data-selected="<?php echo esc_attr(get_option('wecantrack_website_override')); ?>"></select>
+                        <p class="description">
+                            <?php echo esc_html__('Your site domain was not found in your account. Choose which wecantrack website to use for this install (useful for staging environments).', 'wecantrack'); ?>
+                        </p>
+                    </td>
+                </tr>
+
                 <tr class="wecantrack-plugin-status hidden">
                     <th scope="row"><?php echo esc_html__('Plugin status', 'wecantrack'); ?></th>
                     <td>

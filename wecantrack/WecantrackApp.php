@@ -89,10 +89,9 @@ class WecantrackApp {
                     }
 
                     try {
-                        WecantrackHelper::update_tracking_code($api_key, $domainURL);
+                        WecantrackHelper::refresh_config_with_candidates($api_key, WecantrackHelper::get_candidate_site_urls());
                         $extra['update_tracking_code'] = true;
 
-                        WecantrackHelper::update_user_website_information($api_key, $domainURL);
                         WecantrackApp::wecantrack_get_domain_patterns($api_key, true);
                     } catch (\Exception $e) {
                         $extra['update_tracking_code'] = false;

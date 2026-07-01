@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const $submit_verified = document.getElementById('submit-verified');
     const $plugin_status = document.querySelectorAll('.wecantrack-plugin-status input[name="wecantrack_plugin_status"]');
     const $session_enabler = document.querySelector('.wecantrack-session-enabler');
+    const $website_override_row = document.querySelector('.wecantrack-website-override');
+    const $website_override = document.getElementById('wecantrack_website_override');
 
     function toggle_session_enabler() {
         const checked = document.querySelector('.wecantrack-plugin-status input[name="wecantrack_plugin_status"]:checked');
@@ -55,6 +57,42 @@ document.addEventListener('DOMContentLoaded', function () {
             featIcon.classList.replace('dashicons-yes', 'dashicons-no');
             featText.innerHTML = `<a target="_blank" href="https://app.wecantrack.com/user/websites/create?website=${wecantrackParams.site_url}">${wecantrackParams.lang_website_not_added}</a>`;
         }
+
+        maybe_show_website_override(response.data);
+    }
+
+    // When the site domain isn't registered (e.g. staging) but the account has websites,
+    // offer a dropdown so the user can pick which website to use for this install.
+    function maybe_show_website_override(data) {
+        if (!$website_override_row || !$website_override) {
+            return;
+        }
+
+        if (data.has_website || !Array.isArray(data.websites) || data.websites.length === 0) {
+            $website_override_row.classList.add('hidden');
+            return;
+        }
+
+        const urls = data.websites.map(w => w.url).filter(Boolean);
+        const signature = urls.join('|');
+
+        // Populate once per unique list; preserve any selection the user already made.
+        if ($website_override.dataset.populated !== signature) {
+            const preselect = $website_override.dataset.selected || '';
+            $website_override.innerHTML = '';
+            urls.forEach(url => {
+                const opt = document.createElement('option');
+                opt.value = url;
+                opt.textContent = url;
+                if (url === preselect) {
+                    opt.selected = true;
+                }
+                $website_override.appendChild(opt);
+            });
+            $website_override.dataset.populated = signature;
+        }
+
+        $website_override_row.classList.remove('hidden');
     }
 
     function user_passed_prerequisites() {
@@ -69,11 +107,28 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.wecantrack-snippet, .wecantrack-session-enabler, .wecantrack-plugin-status, #wecantrack_ajax_form .submit').forEach(el => {
             el.classList.add('hidden');
         });
+        if ($website_override_row) {
+            $website_override_row.classList.add('hidden');
+        }
+        if ($website_override) {
+            $website_override.innerHTML = '';
+            delete $website_override.dataset.populated;
+        }
     }
 
     $submit_verified.addEventListener('click', function () {
         $submit_type.value = wecantrackParams.lang_verified;
     });
+
+    // Re-run verification against the chosen website. Keep submit_type as 'verify' so this
+    // resolves the website without prematurely persisting plugin status / session enabler.
+    if ($website_override) {
+        $website_override.addEventListener('change', function () {
+            if (busy) return;
+            $submit_type.value = 'verify';
+            $form.dispatchEvent(new Event('submit'));
+        });
+    }
 
     $form.addEventListener('submit', function (event) {
         clear_messages();
