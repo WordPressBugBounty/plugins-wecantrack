@@ -1,60 +1,562 @@
+/* ── Brand palette ──────────────────────────────────────── */
+
+:root {
+    --wecantrack-brand: #1d71b8;
+    --wecantrack-brand-dark: #175d99;
+    --wecantrack-brand-disabled: #a7c4dd;
+    --wecantrack-success: #1e7a3c;
+    --wecantrack-success-bg: #e6f2ea;
+    --wecantrack-danger: #b32d2e;
+    --wecantrack-danger-bg: #fcebea;
+}
+
+/* ── Layout ─────────────────────────────────────────────── */
+
 .wecantrack_body {
-    background-color: #f3f6f9;
-    padding: 20px;
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    box-sizing: border-box;
+    max-width: 1000px;
+    margin-top: 16px;
+    padding: 28px 32px 32px;
 }
 
-.wecantrack_hero_image {
-    text-align: right;
-    position: relative;
-    float: right;
-    right: 0;
-    /*margin-right: 20px;*/
+.wecantrack_body h1 {
+    margin: 4px 0 12px;
+    padding: 0;
+    font-size: 23px;
+    font-weight: 600;
+    color: #1d2327;
 }
 
-.wecantrack_hero_image img {
-    height: 50px;
+/* ── Page header ────────────────────────────────────────── */
+
+.wecantrack-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.wecantrack-header-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.wecantrack-header-brand img {
+    height: 38px;
     width: auto;
+    display: block;
 }
 
-.wecantrack-text-danger {
-    color: red;
+.wecantrack-version-footer {
+    margin-top: 24px;
+    text-align: right;
+    color: #8c8f94;
+    font-size: 12px;
+    font-family: Consolas, Monaco, monospace;
 }
 
-.wecantrack-text-success {
-    color: green;
+.wecantrack-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.wecantrack-pill::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.wecantrack-pill-connected {
+    background: var(--wecantrack-success-bg);
+    color: var(--wecantrack-success);
+}
+
+.wecantrack-pill-disconnected {
+    background: #f0f0f1;
+    color: #646970;
+}
+
+.wecantrack-pill-paused {
+    background: #fcf9e8;
+    color: #996800;
+}
+
+.wecantrack-inline-note {
+    max-width: 720px;
+    margin: 0 0 16px;
+    padding: 10px 14px;
+    background: #fcf9e8;
+    border-left: 4px solid #dba617;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+/* ── Connection card ────────────────────────────────────── */
+
+.wecantrack-connection-card {
+    background: #f6f7f7;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    box-sizing: border-box;
+    max-width: 720px;
+    margin: 0 0 24px;
+    padding: 18px 22px;
+}
+
+.wecantrack-card-title {
+    margin: 0 0 14px;
+    padding: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.wecantrack-connection-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0;
+    font-size: 13px;
+}
+
+.wecantrack-connection-label {
+    display: inline-block;
+    width: 80px;
+    flex-shrink: 0;
+    color: #646970;
+    font-size: 13px;
+}
+
+.wecantrack-connection-card code {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 3px;
+    padding: 2px 8px;
+    font-size: 12px;
+}
+
+.wecantrack-connection-setup {
+    margin: 8px 0;
+}
+
+.wecantrack-connection-setup .wecantrack-connection-label {
+    display: block;
+    width: auto;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.wecantrack-connection-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.wecantrack-connection-controls input[type="text"] {
+    width: 320px;
+    max-width: 100%;
+}
+
+.wecantrack-prerequisites {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #e5e5e5;
+}
+
+.wecantrack-website-override {
+    margin-top: 14px;
+}
+
+.wecantrack-website-override select {
+    width: 320px;
+    max-width: 100%;
+}
+
+/* ── Settings fieldset ──────────────────────────────────── */
+
+.wecantrack-settings-fieldset {
+    border: none;
+    margin: 0;
+    padding: 0;
+    transition: opacity 0.2s ease;
+}
+
+.wecantrack-settings-fieldset:disabled {
+    opacity: 0.5;
+}
+
+/* ── Toggle switch ──────────────────────────────────────── */
+
+.wecantrack-toggle {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Extra .wecantrack_body specificity: WP core's <=782px stylesheet restyles
+   input[type=checkbox] (25px box) with more specific selectors and would
+   otherwise resurface the hidden checkbox on mobile. */
+.wecantrack_body .wecantrack-toggle input[type="checkbox"] {
+    -webkit-appearance: none;
+    appearance: none;
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+/* inline-block + own margin (not flex gap): keeps its 40x22 box and spacing
+   even when a WP mobile rule changes the label's display. */
+.wecantrack-toggle-track {
+    display: inline-block;
+    position: relative;
+    vertical-align: middle;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    width: 40px;
+    height: 22px;
+    margin-right: 10px;
+    border-radius: 999px;
+    background: #c3c4c7;
+    transition: background 0.15s ease;
+}
+
+.wecantrack-toggle-track::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transition: transform 0.15s ease;
+}
+
+.wecantrack-toggle input[type="checkbox"]:checked ~ .wecantrack-toggle-track {
+    background: var(--wecantrack-brand);
+}
+
+.wecantrack-toggle input[type="checkbox"]:checked ~ .wecantrack-toggle-track::after {
+    transform: translateX(18px);
+}
+
+.wecantrack-toggle input[type="checkbox"]:focus-visible ~ .wecantrack-toggle-track {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--wecantrack-brand);
+}
+
+.wecantrack-toggle-text {
+    font-size: 13px;
+    color: #1d2327;
+}
+
+/* ── Form table ─────────────────────────────────────────── */
+
+.wecantrack_body .form-table {
+    border-collapse: collapse;
+}
+
+.wecantrack_body .form-table tr {
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.wecantrack_body .form-table tr:last-child {
+    border-bottom: none;
+}
+
+.wecantrack_body .form-table th {
+    font-weight: 600;
+    color: #1d2327;
+}
+
+/* Fixed label column only on desktop — below 783px WP core stacks
+   th/td as full-width blocks and must keep control of the layout. */
+@media (min-width: 783px) {
+    .wecantrack_body .form-table th {
+        width: 220px;
+        padding: 24px 24px 24px 0;
+    }
+
+    .wecantrack_body .form-table td {
+        padding: 20px 10px;
+    }
+}
+
+.wecantrack_body .form-table td > p:first-child,
+.wecantrack_body .form-table td > fieldset:first-child p:first-child {
+    margin-top: 0;
+}
+
+.wecantrack_body p.description {
+    max-width: 720px;
+    color: #646970;
+    font-size: 12.5px;
+    line-height: 1.6;
+}
+
+/* One consistent 36px control height so inputs and adjacent buttons align. */
+.wecantrack_body input[type="text"],
+.wecantrack_body select,
+.wecantrack_body .button {
+    box-sizing: border-box;
+    min-height: 36px;
+    vertical-align: middle;
+}
+
+.wecantrack_body input[type="text"] {
+    padding: 4px 12px;
+    border-color: #dcdcde;
+    border-radius: 4px;
+}
+
+.wecantrack_body input[type="text"]:focus,
+.wecantrack_body select:focus {
+    border-color: var(--wecantrack-brand);
+    box-shadow: 0 0 0 1px var(--wecantrack-brand);
+}
+
+.wecantrack_body select {
+    border-radius: 4px;
+}
+
+.wecantrack_body input[type="radio"]:checked::before {
+    background-color: var(--wecantrack-brand);
+}
+
+/* ── Buttons ────────────────────────────────────────────── */
+
+.wecantrack_body .button {
+    border-radius: 4px;
+    /* 34px line-height + 2px border = the shared 36px control height. */
+    line-height: 34px;
+}
+
+.wecantrack_body .button-primary {
+    background: var(--wecantrack-brand);
+    border-color: var(--wecantrack-brand);
+    padding: 0 16px;
+    transition: background 0.15s ease;
+}
+
+.wecantrack_body .button-primary:hover,
+.wecantrack_body .button-primary:focus {
+    background: var(--wecantrack-brand-dark);
+    border-color: var(--wecantrack-brand-dark);
+}
+
+/* !important required: WP core styles disabled buttons with !important. */
+.wecantrack_body .button-primary:disabled {
+    background: var(--wecantrack-brand-disabled) !important;
+    border-color: var(--wecantrack-brand-disabled) !important;
 }
 
 .wecantrack-button-danger {
-    border-color: red !important;
-    color: red !important;
+    border-color: var(--wecantrack-danger) !important;
+    color: var(--wecantrack-danger) !important;
 }
 
-#wecantrack_form_feedback {
+/* ── Feedback messages ──────────────────────────────────── */
+
+.wecantrack-text-success,
+.wecantrack-text-danger {
+    display: inline-block;
+    box-sizing: border-box;
+    max-width: 720px;
+    padding: 8px 14px;
+    border-left: 3px solid;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.5;
+    transition: opacity 0.6s ease;
 }
 
-.wecantrack_animation_rotate {
-    animation-name: wecantrack_360_rotate;
-    animation-duration: 2000ms;
-    animation-iteration-count: infinite;
-    animation-timing-function: linear;
+.wecantrack-text-success {
+    color: var(--wecantrack-success);
+    background: var(--wecantrack-success-bg);
+    border-left-color: var(--wecantrack-success);
+}
+
+.wecantrack-text-danger {
+    color: var(--wecantrack-danger);
+    background: var(--wecantrack-danger-bg);
+    border-left-color: var(--wecantrack-danger);
+}
+
+.wecantrack-fade-out {
+    opacity: 0;
+}
+
+/* Block feedback area (verify errors, script version) gets breathing room. */
+.wecantrack-feedback:not(:empty):not(.wecantrack-feedback-inline) {
+    margin-top: 12px;
+}
+
+/* Inline feedback sits next to its button: plain text, no box, so it
+   aligns with the button instead of competing with it. */
+.wecantrack-feedback-inline {
+    vertical-align: middle;
+}
+
+.wecantrack-feedback-inline .wecantrack-text-success,
+.wecantrack-feedback-inline .wecantrack-text-danger {
+    background: none;
+    border: none;
+    margin: 0;
+    padding: 0;
+    font-weight: 600;
+    line-height: 36px;
+}
+
+.wecantrack-feedback-inline .wecantrack-text-success::before {
+    content: "✓ ";
+}
+
+.wecantrack-feedback-inline .wecantrack-text-danger::before {
+    content: "⚠ ";
+}
+
+.wecantrack-submit-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* WP core gives submit buttons a bottom margin; it skews flex centering. */
+.wecantrack-submit-row .button {
+    margin: 0;
+}
+
+/* ── Requirements checklist ─────────────────────────────── */
+
+.wecantrack-prerequisites p {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 6px 0;
 }
 
 .wecantrack-prerequisites .dashicons-yes {
-    color: green;
+    color: var(--wecantrack-success);
 }
 
 .wecantrack-prerequisites .dashicons-no {
-    color: red;
+    color: var(--wecantrack-danger);
 }
 
-@keyframes wecantrack_360_rotate {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+/* ── Footer notes ───────────────────────────────────────── */
+
+.wecantrack-footer-note {
+    max-width: 720px;
+    margin: 20px 0 0;
+    color: #646970;
+    font-size: 12.5px;
+    line-height: 1.6;
 }
+
+/* ── Tracking script version UI ─────────────────────────── */
+
+.wecantrack-script-version-card {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-left: 4px solid var(--wecantrack-brand);
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    padding: 20px 24px;
+    margin: 24px 0 16px;
+    max-width: 860px;
+    box-sizing: border-box;
+}
+
+.wecantrack-script-version-card h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 0 0 10px;
+    padding: 0;
+    font-size: 16px;
+    line-height: 1.4;
+}
+
+.wecantrack-script-version-card p {
+    margin: 0 0 16px;
+    max-width: 660px;
+    color: #50575e;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+/* Selectors are specific enough to beat both the card's own `p` rule and
+   WP core's `.form-table td p` margins without !important. */
+.wecantrack-script-version-card p.wecantrack-script-version-actions,
+.wecantrack_body .form-table td p.wecantrack-script-version-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.wecantrack_body .form-table td p.wecantrack-script-version-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 12px;
+}
+
+.wecantrack-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.8;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+}
+
+.wecantrack-badge-legacy {
+    background: #fcf0e4;
+    color: #8a6116;
+}
+
+.wecantrack-badge-new {
+    background: var(--wecantrack-success-bg);
+    color: var(--wecantrack-success);
+}
+
+.wecantrack-script-version-feedback:not(:empty) {
+    margin-top: 14px;
+}
+
+/* ── Loading bar ────────────────────────────────────────── */
 
 @keyframes wecantrack-loader-animation {
     0% {left: -100%;}
@@ -67,9 +569,10 @@
     width: 100%;
     opacity: 0.8;
     position: fixed;
-    height: 5px;
+    height: 4px;
     top: 32px;
-    background-color: rgb(34, 113, 184);
+    left: 0;
+    background-color: var(--wecantrack-brand);
     animation-name: wecantrack-loader-animation;
     animation-duration: 3s;
     animation-iteration-count: infinite;

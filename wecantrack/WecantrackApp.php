@@ -11,6 +11,7 @@ if (!defined('ABSPATH')) { exit; }
  */
 class WecantrackApp {
     const CURL_TIMEOUT_S = 5, FETCH_DOMAIN_PATTERN_IN_HOURS = 3, WCT_SCRIPT_DOMAIN = 'wct-3.com';
+    const DEFAULT_CLICK_ID_PLACEHOLDER = '{wct_click_id}';
 
     private $api_key, $drop_referrer_cookie;
 
@@ -193,6 +194,11 @@ class WecantrackApp {
     public function redirect_default($location) {
         self::delete_http_referrer_where_site_url(self::current_url());
 
+        $placeholder_url = $this->replace_click_id_placeholder($location);
+        if ($placeholder_url !== null) {
+            return $placeholder_url;
+        }
+
         if (!self::is_affiliate_link($this->api_key, $location)) {
             return $location;
         }
@@ -204,8 +210,119 @@ class WecantrackApp {
     }
 
     /**
+     * Replaces the click ID placeholder in a redirect target with a locally generated click ID.
+     *
+     * Mirrors replaceClickIdPlaceholderInAnchor() in the wct.js auto-tagging module, but for
+     * cloaked URLs whose affiliate target never appears in the page HTML: the placeholder (raw
+     * or URL-encoded) is swapped for a click ID at redirect time and the click is registered
+     * with the Clickout API via user_click_reference in a non-blocking request.
+     *
+     * @param string $location The redirect target URL.
+     * @return string|null The URL with the placeholder replaced, or null when it contains no placeholder.
+     */
+    private function replace_click_id_placeholder($location) {
+        $placeholder = self::get_click_id_placeholder();
+        $tokens = [$placeholder, rawurlencode($placeholder)];
+
+        // Forgiving fallback: when no custom placeholder is configured, also accept the
+        // default written without braces. Listed last so the braced forms are consumed
+        // first and only genuinely bare occurrences remain to match.
+        if ($placeholder === self::DEFAULT_CLICK_ID_PLACEHOLDER) {
+            $tokens[] = 'wct_click_id';
+        }
+
+        if (str_replace($tokens, '', $location) === $location) {
+            return null;
+        }
+
+        self::set_no_cache_headers();
+
+        $click_id = self::generate_click_id();
+        $modified_url = str_replace($tokens, $click_id, $location);
+
+        // bots get a clean URL, but their clicks are not registered
+        if (isset($_SERVER['HTTP_USER_AGENT']) && !WecantrackHelper::useragent_is_bot($_SERVER['HTTP_USER_AGENT'])) {
+            $this->register_clickout_reference($modified_url, $click_id);
+        }
+
+        return $modified_url;
+    }
+
+    /**
+     * Returns the click ID placeholder configured for this website in the wecantrack website
+     * form, falling back to the same default the wct.js auto-tagging module uses.
+     *
+     * @return string The placeholder string, e.g. `{wct_click_id}`.
+     */
+    public static function get_click_id_placeholder() {
+        $raw = get_option('wecantrack_website_options');
+        $website_options = is_array($raw) ? $raw : json_decode((string) $raw, true);
+        $placeholder = is_array($website_options) ? ($website_options['click_id_placeholder'] ?? '') : '';
+
+        return is_string($placeholder) && $placeholder !== '' ? $placeholder : self::DEFAULT_CLICK_ID_PLACEHOLDER;
+    }
+
+    /**
+     * Generates a click ID in the same format as _wct.generateClickID() in the wct.js
+     * auto-tagging module: `wct` + UTC ymdHis + 5 random alphanumerics.
+     *
+     * @return string The generated click ID.
+     */
+    public static function generate_click_id() {
+        $characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        $suffix = '';
+        for ($i = 0; $i < 5; $i++) {
+            $suffix .= $characters[wp_rand(0, strlen($characters) - 1)];
+        }
+
+        return 'wct' . gmdate('ymdHis') . $suffix;
+    }
+
+    /**
+     * Registers a click with the Clickout API under a locally generated click reference.
+     *
+     * The redirect URL already carries the click ID, so no response is needed: the request
+     * is fire-and-forget (non-blocking), same as the sendBeacon call in the wct.js module.
+     *
+     * @param string $affiliate_url The affiliate URL with the click ID already injected.
+     * @param string $click_id      The locally generated click ID.
+     * @return void
+     */
+    private function register_clickout_reference($affiliate_url, $click_id) {
+        try {
+            $wctCookie = !empty($_COOKIE['_wctrck']) ? sanitize_text_field($_COOKIE['_wctrck']) : null;
+            $wctCookie = !$wctCookie && !empty($_GET['data']) && strlen($_GET['data']) > 50
+                ? sanitize_text_field($_GET['data']) : $wctCookie;
+
+            $post_data = [
+                'affiliate_url' => rawurlencode($affiliate_url),
+                'user_click_reference' => $click_id,
+                'clickout_url' => self::get_clickout_url(),
+                'redirect_url' => self::current_url(),
+                '_ga' => !empty($_COOKIE['_ga']) ? sanitize_text_field($_COOKIE['_ga']) : null,
+                '_wctrck' => $wctCookie,
+                'ua' => sanitize_text_field($_SERVER['HTTP_USER_AGENT']),
+                'ip' => self::get_user_real_ip(),
+            ];
+
+            wp_remote_post(WECANTRACK_API_BASE_URL . '/api/v1/clickout', [
+                'timeout' => self::CURL_TIMEOUT_S,
+                'blocking' => false,
+                'headers' => [
+                    'x-api-key' => $this->api_key,
+                    'Content-Type' => 'application/json',
+                ],
+                'body' => json_encode($post_data),
+                'sslverify' => WecantrackHelper::get_sslverify_option()
+            ]);
+        } catch (Exception $e) {
+            error_log('[WeCanTrack] Clickout reference register exception: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Inserts the WCT Snippet with preload tag.
-     * 
+     *
      * @return void
      */
     public function insert_snippet() {

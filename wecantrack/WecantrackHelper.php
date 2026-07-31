@@ -82,7 +82,7 @@ class WecantrackHelper {
             throw new \UnexpectedValueException(
                 sprintf(
                     // translators: %s is the website URL or identifier.
-                    esc_html__('Website `%s` not found in your We Can Track account', 'wecantrack'),
+                    esc_html__('Website `%s` not found in your wecantrack account', 'wecantrack'),
                     esc_url($site_url)
                 )
             );
@@ -177,7 +177,7 @@ class WecantrackHelper {
         throw new \UnexpectedValueException(
             sprintf(
                 // translators: %s is the website URL or identifier.
-                esc_html__('Website `%s` not found in your We Can Track account', 'wecantrack'),
+                esc_html__('Website `%s` not found in your wecantrack account', 'wecantrack'),
                 esc_url($home_url)
             )
         );
@@ -203,6 +203,49 @@ class WecantrackHelper {
         self::update_tracking_code($api_key, $matched);
 
         return $matched;
+    }
+
+    /**
+     * Updates the script version of the given website in the user's WeCanTrack account.
+     *
+     * Sends a PATCH request to the `/websites` endpoint. On the WeCanTrack side this is
+     * recorded as a deliberate user choice, so bulk script-version migrations skip the
+     * website afterwards.
+     *
+     * @param string $api_key        The user's WeCanTrack API key.
+     * @param string $site_url       The website URL as registered in the WeCanTrack account.
+     * @param int    $script_version The script version to switch to (1 = legacy, 2 = new).
+     * @throws \RuntimeException     If the request fails.
+     */
+    public static function update_script_version($api_key, $site_url, $script_version)
+    {
+        $api_url = WECANTRACK_API_BASE_URL . '/api/v1/websites?url=' . urlencode($site_url);
+        $response = wp_remote_request($api_url, [
+            'method' => 'PATCH',
+            'timeout' => 10,
+            'headers' => [
+                'x-api-key' => $api_key,
+                'x-wp-version' => WECANTRACK_VERSION,
+            ],
+            // Form-encoded on purpose: the endpoint reads PHP-parsed body params, not JSON.
+            'body' => ['script_version' => (int) $script_version],
+            'sslverify' => self::get_sslverify_option()
+        ]);
+
+        if (is_wp_error($response)) {
+            throw new \RuntimeException($response->get_error_message());
+        }
+
+        $code = (int) wp_remote_retrieve_response_code($response);
+        if ($code !== 200) {
+            throw new \RuntimeException(
+                sprintf(
+                    // translators: %s is the website URL.
+                    esc_html__('Could not update the tracking script version for %s', 'wecantrack'),
+                    esc_url($site_url)
+                )
+            );
+        }
     }
 
     /**
@@ -235,7 +278,7 @@ class WecantrackHelper {
         if ($code === 404) {
             throw new \Exception(
                 sprintf(
-                    esc_html__('Website `%s` not found in your We Can Track account', 'wecantrack'),
+                    esc_html__('Website `%s` not found in your wecantrack account', 'wecantrack'),
                     esc_url($site_url)
                 )
             );

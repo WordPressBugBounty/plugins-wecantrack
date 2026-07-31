@@ -4,7 +4,7 @@ Tags: affiliate conversion tracking, google ads integration, google analytics in
 Requires at least: 4.6
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 5.1.1
+Stable tag: 5.3.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -115,6 +115,22 @@ Not yet. Contact support@wecantrack.com if you need this.
 == Upgrade Notice ==
 
 == Changelog ==
+
+= 5.3.0 - 30th July 2026 =
+ * Support the click ID placeholder in cloaked affiliate links: add {wct_click_id} (or the custom placeholder from your wecantrack website settings) anywhere in the target URL of your link cloaking plugin (e.g. Pretty Links) and it is replaced with a click ID at redirect time, even for advertiser domains that match no known network pattern
+ * Also accept the default placeholder written without braces (wct_click_id) when no custom placeholder is configured
+ * Register placeholder clicks with the wecantrack Clickout API in the background, without delaying the redirect
+ * Show "Connected · tracking off" in the admin header when the API connection is verified but tracking is disabled, instead of a plain "Connected"
+
+= 5.2.0 - 17th July 2026 =
+ * Add a one-click upgrade to the new wecantrack tracking script (v2) on the settings page when your website still uses the legacy script
+ * Add a tracking script version control under wecantrack > Advanced to switch between the new and legacy script at any time
+ * Redesign the admin pages: connection card with at-a-glance status, collapsed API key once verified, toggle switches instead of Enable/Disable radios, inline save feedback, and a page header with connection state
+ * Settings are visible but locked until the API key is verified, instead of appearing progressively
+ * Adopt lowercase wecantrack branding across the admin UI
+ * Rename the "Settings" submenu to "Advanced" and collapse the deprecated afflink section to a footnote
+ * Remove the deprecated Redirect Page admin screen
+ * Allow overriding the API base URL via the WECANTRACK_API_BASE_URL constant (for local development; the default remains production)
 
 = 5.1.1 - 1st July 2026 =
  * Confirm compatibility with WordPress 7.0

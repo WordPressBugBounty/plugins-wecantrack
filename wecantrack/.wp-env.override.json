@@ -1,0 +1,5 @@
+{
+	"config": {
+		"WECANTRACK_API_BASE_URL": "https://we-can-track.test"
+	}
+}

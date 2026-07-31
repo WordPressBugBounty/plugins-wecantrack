@@ -3,7 +3,7 @@
  * Plugin Name:       WeCanTrack
  * Plugin URI:        https://wecantrack.com/wordpress
  * Description:       Integrate all your affiliate sales into Google Analytics, Google Ads, Facebook, Data Studio, and more!
- * Version:           5.1.1
+ * Version:           5.3.0
  * Author:            WeCanTrack
  * Author URI:        https://wecantrack.com
  * Requires PHP:      7.4
@@ -17,11 +17,15 @@
 
 if (!defined('ABSPATH')) { die('You are not allowed to call this page directly.'); }
 
-define('WECANTRACK_VERSION', '5.1.1');
+define('WECANTRACK_VERSION', '5.3.0');
 define('WECANTRACK_PLUGIN_NAME', 'wecantrack');
 define('WECANTRACK_PATH', plugin_dir_path(__FILE__));
 define('WECANTRACK_URL', plugin_dir_url(__FILE__));
-define('WECANTRACK_API_BASE_URL', 'https://api.wecantrack.com');
+// Overridable for local development (e.g. in wp-config.php via .wp-env.override.json);
+// the shipped default always points at production.
+if (!defined('WECANTRACK_API_BASE_URL')) {
+    define('WECANTRACK_API_BASE_URL', 'https://api.wecantrack.com');
+}
 
 // Load core classes
 require_once(WECANTRACK_PATH . '/WecantrackHelper.php');
