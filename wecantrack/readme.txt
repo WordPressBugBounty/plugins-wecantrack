@@ -4,7 +4,7 @@ Tags: affiliate conversion tracking, google ads integration, google analytics in
 Requires at least: 4.6
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 5.3.0
+Stable tag: 5.4.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -115,6 +115,10 @@ Not yet. Contact support@wecantrack.com if you need this.
 == Upgrade Notice ==
 
 == Changelog ==
+
+= 5.4.0 - 19th August 2026 =
+ * Prevent page-optimization plugins from breaking the tracking script: the wct.js tag is now automatically excluded from minification, combination, deferral and delaying in WP Rocket, LiteSpeed Cache, Autoptimize, W3 Total Cache, WP-Optimize and Perfmatters, including installs using a custom proxy domain
+ * Add opt-out attributes to the script tags for optimizers without exclusion hooks (Cloudflare Rocket Loader, FlyingPress and others)
 
 = 5.3.0 - 30th July 2026 =
  * Support the click ID placeholder in cloaked affiliate links: add {wct_click_id} (or the custom placeholder from your wecantrack website settings) anywhere in the target URL of your link cloaking plugin (e.g. Pretty Links) and it is replaced with a click ID at redirect time, even for advertiser domains that match no known network pattern

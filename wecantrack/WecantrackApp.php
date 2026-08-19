@@ -12,6 +12,13 @@ if (!defined('ABSPATH')) { exit; }
 class WecantrackApp {
     const CURL_TIMEOUT_S = 5, FETCH_DOMAIN_PATTERN_IN_HOURS = 3, WCT_SCRIPT_DOMAIN = 'wct-3.com';
     const DEFAULT_CLICK_ID_PLACEHOLDER = '{wct_click_id}';
+    const WCT_SCRIPT_FILENAME = 'wct.js';
+
+    // Opt-out attributes for optimizers without usable PHP hooks: Cloudflare Rocket
+    // Loader runs at the CDN edge and cannot be detected from PHP, data-no-optimize
+    // is the generic "leave me alone" convention (FlyingPress and others), and
+    // data-nowprocket is WP Rocket's documented tag-level exclusion.
+    const OPTIMIZER_OPT_OUT_ATTRS = ' data-cfasync="false" data-no-optimize="1" data-nowprocket';
 
     private $api_key, $drop_referrer_cookie;
 
@@ -176,9 +183,170 @@ class WecantrackApp {
     public function load_hooks() {
         add_filter('wp_redirect', [$this, 'redirect_default'], 99);
 
+        $this->exclude_from_optimizer_plugins();
+
         if (!isset($this->options_storage['include_script']) || $this->options_storage['include_script'] == true) {
             add_action('wp_head', [$this, 'insert_snippet']);
         }
+    }
+
+    /**
+     * Registers exclusion hooks so page-optimizer plugins do not minify, combine,
+     * defer, or delay the wct.js tracking script.
+     *
+     * wct.js is a dynamic per-property build: optimizers that fetch it, strip its
+     * query string, and re-host a static copy end up serving an empty script.
+     *
+     * Each optimizer has its own matching semantics, so the values differ per hook:
+     * - WP Rocket excludes external scripts from minify/combine by host, and
+     *   delay/defer exclusions are regex fragments matched against the tag.
+     * - LiteSpeed Cache, WP-Optimize, and Perfmatters match plain URL substrings.
+     * - Autoptimize matches substrings in a comma-separated string.
+     * - W3 Total Cache passes each script tag through a boolean filter.
+     *
+     * Optimizers without usable hooks (Cloudflare Rocket Loader, FlyingPress, ...)
+     * are covered by OPTIMIZER_OPT_OUT_ATTRS on the script tag instead. SiteGround
+     * Optimizer's filters take enqueue handles and cannot match a raw tag, which
+     * its minifier does not process anyway.
+     *
+     * @return void
+     */
+    private function exclude_from_optimizer_plugins() {
+        // WP Rocket
+        add_filter('rocket_minify_excluded_external_js', [$this, 'add_script_hosts_exclusion']);
+        add_filter('rocket_delay_js_exclusions', [$this, 'add_script_pattern_exclusion']);
+        add_filter('rocket_exclude_defer_js', [$this, 'add_script_pattern_exclusion']);
+
+        // LiteSpeed Cache
+        add_filter('litespeed_optimize_js_excludes', [$this, 'add_script_substring_exclusion']);
+        add_filter('litespeed_optm_js_defer_exc', [$this, 'add_script_substring_exclusion']);
+
+        // WP-Optimize
+        add_filter('wp-optimize-minify-default-exclusions', [$this, 'add_script_substring_exclusion']);
+
+        // Perfmatters
+        add_filter('perfmatters_delay_js_exclusions', [$this, 'add_script_substring_exclusion']);
+        add_filter('perfmatters_defer_js_exclusions', [$this, 'add_script_substring_exclusion']);
+
+        // Autoptimize
+        add_filter('autoptimize_filter_js_exclude', [$this, 'add_autoptimize_exclusion']);
+
+        // W3 Total Cache
+        add_filter('w3tc_minify_js_do_tag_minification', [$this, 'skip_w3tc_tag_minification'], 10, 3);
+    }
+
+    /**
+     * Adds the wct.js filename as a plain-substring exclusion (no regex, no wildcards).
+     *
+     * @param array|string|null $excludes The optimizer's current exclusion list.
+     * @return array The exclusion list including wct.js.
+     */
+    public function add_script_substring_exclusion($excludes) {
+        $excludes = self::ensure_exclusion_array($excludes);
+        $excludes[] = self::WCT_SCRIPT_FILENAME;
+        return $excludes;
+    }
+
+    /**
+     * Adds wct.js as a regex-fragment exclusion (WP Rocket delay/defer lists).
+     *
+     * @param array|string|null $excludes The optimizer's current exclusion list.
+     * @return array The exclusion list including the wct.js pattern.
+     */
+    public function add_script_pattern_exclusion($excludes) {
+        $excludes = self::ensure_exclusion_array($excludes);
+        $excludes[] = 'wct\.js';
+        return $excludes;
+    }
+
+    /**
+     * Adds the wct.js script hosts (default domain and, when configured in the
+     * website form, the custom proxy domain) to a host-based exclusion list.
+     *
+     * @param array|string|null $hosts The optimizer's current host exclusion list.
+     * @return array The host list including the wct.js domains.
+     */
+    public function add_script_hosts_exclusion($hosts) {
+        $hosts = self::ensure_exclusion_array($hosts);
+        $hosts[] = self::WCT_SCRIPT_DOMAIN;
+
+        $proxy_host = self::get_script_proxy_host();
+        if ($proxy_host) {
+            $hosts[] = $proxy_host;
+        }
+
+        return $hosts;
+    }
+
+    /**
+     * Adds wct.js to Autoptimize's comma-separated exclusion string.
+     *
+     * @param string|mixed $exclude The current comma-separated exclusion string.
+     * @return string The exclusion string including wct.js.
+     */
+    public function add_autoptimize_exclusion($exclude) {
+        $exclude = is_string($exclude) ? $exclude : '';
+        return $exclude === '' ? self::WCT_SCRIPT_FILENAME : $exclude . ', ' . self::WCT_SCRIPT_FILENAME;
+    }
+
+    /**
+     * Tells W3 Total Cache to skip minification for the wct.js script tag.
+     *
+     * @param bool   $do_tag_minification Whether W3TC intends to minify this tag.
+     * @param string $script_tag          The full script tag being processed.
+     * @param string $file                The script URL.
+     * @return bool False for wct.js, otherwise the incoming value.
+     */
+    public function skip_w3tc_tag_minification($do_tag_minification, $script_tag, $file) {
+        if (is_string($file) && strpos($file, self::WCT_SCRIPT_FILENAME) !== false) {
+            return false;
+        }
+        return $do_tag_minification;
+    }
+
+    /**
+     * Normalizes an exclusion-filter value to an array without discarding entries
+     * another plugin may have registered as a scalar. Empty values are dropped:
+     * an empty-string entry would substring-match every script in strpos-based
+     * optimizers and exclude everything.
+     *
+     * @param array|string|null $value The incoming filter value.
+     * @return array The value as an array.
+     */
+    private static function ensure_exclusion_array($value) {
+        if (is_array($value)) {
+            return $value;
+        }
+        return $value === null || $value === '' ? [] : [$value];
+    }
+
+    /**
+     * Returns the host of the custom script proxy domain configured in the
+     * wecantrack website form, or null when no proxy is set.
+     *
+     * @return string|null The proxy host, e.g. `proxy.example.com`.
+     */
+    public static function get_script_proxy_host() {
+        $website_options = self::get_website_options();
+        $proxy = is_array($website_options) ? ($website_options['proxy'] ?? '') : '';
+
+        if (!is_string($proxy) || $proxy === '') {
+            return null;
+        }
+
+        $host = wp_parse_url($proxy, PHP_URL_HOST);
+        return $host ?: null;
+    }
+
+    /**
+     * Returns the decoded wecantrack website form options, or null when unset.
+     *
+     * @return array|null The website options.
+     */
+    private static function get_website_options() {
+        $raw = get_option('wecantrack_website_options');
+        $website_options = is_array($raw) ? $raw : json_decode((string) $raw, true);
+        return is_array($website_options) ? $website_options : null;
     }
 
     /**
@@ -255,8 +423,7 @@ class WecantrackApp {
      * @return string The placeholder string, e.g. `{wct_click_id}`.
      */
     public static function get_click_id_placeholder() {
-        $raw = get_option('wecantrack_website_options');
-        $website_options = is_array($raw) ? $raw : json_decode((string) $raw, true);
+        $website_options = self::get_website_options();
         $placeholder = is_array($website_options) ? ($website_options['click_id_placeholder'] ?? '') : '';
 
         return is_string($placeholder) && $placeholder !== '' ? $placeholder : self::DEFAULT_CLICK_ID_PLACEHOLDER;
@@ -326,8 +493,7 @@ class WecantrackApp {
      * @return void
      */
     public function insert_snippet() {
-        $raw = get_option('wecantrack_website_options');
-        $website_options = is_array($raw) ? $raw : json_decode($raw, true);
+        $website_options = self::get_website_options();
 
         if (!empty($website_options) && ($website_options['script_version'] ?? null) == 2) {
             $property_id = $website_options['property_id'] ?? null;
@@ -335,7 +501,10 @@ class WecantrackApp {
             if (!empty($property_id)) {
                 $base = !empty($website_options['proxy']) ? $website_options['proxy'] : 'https://' . self::WCT_SCRIPT_DOMAIN;
                 $src = $base . '/wct.js?property_id=' . urlencode($property_id);
-                $extra_attrs = ($website_options['cookie_consent_provider'] ?? null) === 'cookiebot' ? ' data-cookieconsent="ignore"' : '';
+                $extra_attrs = self::OPTIMIZER_OPT_OUT_ATTRS;
+                if (($website_options['cookie_consent_provider'] ?? null) === 'cookiebot') {
+                    $extra_attrs .= ' data-cookieconsent="ignore"';
+                }
                 echo '<script src="' . esc_url($src) . '" async' . $extra_attrs . '></script>';
 
                 if (!empty($website_options['monetisation_enabled']) && empty($website_options['monetisation_bundled'])) {
@@ -354,7 +523,7 @@ class WecantrackApp {
 
         if (!empty($scriptSrcStringmatch[1])) {
             echo '<link rel="preload" href="'.esc_url($scriptSrcStringmatch[1]).'" as="script">';
-            echo '<script type="text/javascript" data-ezscrex="false" async>'.$this->snippet.'</script>';
+            echo '<script type="text/javascript" data-ezscrex="false"' . self::OPTIMIZER_OPT_OUT_ATTRS . ' async>'.$this->snippet.'</script>';
         }
     }
 
