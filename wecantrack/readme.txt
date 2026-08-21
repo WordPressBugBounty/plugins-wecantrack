@@ -4,7 +4,7 @@ Tags: affiliate conversion tracking, google ads integration, google analytics in
 Requires at least: 4.6
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 5.4.0
+Stable tag: 5.4.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -115,6 +115,9 @@ Not yet. Contact support@wecantrack.com if you need this.
 == Upgrade Notice ==
 
 == Changelog ==
+
+= 5.4.1 - 21st August 2026 =
+ * Exclude the tracking script from SiteGround Optimizer's "Combine JavaScript Files" feature, which downloads external scripts into a combined bundle and would keep serving a stale copy of the tracking script
 
 = 5.4.0 - 19th August 2026 =
  * Prevent page-optimization plugins from breaking the tracking script: the wct.js tag is now automatically excluded from minification, combination, deferral and delaying in WP Rocket, LiteSpeed Cache, Autoptimize, W3 Total Cache, WP-Optimize and Perfmatters, including installs using a custom proxy domain

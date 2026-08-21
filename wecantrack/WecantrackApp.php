@@ -203,11 +203,15 @@ class WecantrackApp {
      * - LiteSpeed Cache, WP-Optimize, and Perfmatters match plain URL substrings.
      * - Autoptimize matches substrings in a comma-separated string.
      * - W3 Total Cache passes each script tag through a boolean filter.
+     * - SiteGround Optimizer's "Combine JavaScript Files" parses raw script tags
+     *   from the HTML, downloads external scripts, and inlines their content into
+     *   a combined bundle (freezing wct.js's per-request anti-bot token), and it
+     *   ignores the opt-out attributes. Its handle-based filter cannot match a raw
+     *   tag, but the external-paths filter (external srcs) and inline-content
+     *   filter (the legacy inline snippet) match plain substrings.
      *
      * Optimizers without usable hooks (Cloudflare Rocket Loader, FlyingPress, ...)
-     * are covered by OPTIMIZER_OPT_OUT_ATTRS on the script tag instead. SiteGround
-     * Optimizer's filters take enqueue handles and cannot match a raw tag, which
-     * its minifier does not process anyway.
+     * are covered by OPTIMIZER_OPT_OUT_ATTRS on the script tag instead.
      *
      * @return void
      */
@@ -230,6 +234,10 @@ class WecantrackApp {
 
         // Autoptimize
         add_filter('autoptimize_filter_js_exclude', [$this, 'add_autoptimize_exclusion']);
+
+        // SiteGround Optimizer
+        add_filter('sgo_javascript_combine_excluded_external_paths', [$this, 'add_script_substring_exclusion']);
+        add_filter('sgo_javascript_combine_excluded_inline_content', [$this, 'add_script_substring_exclusion']);
 
         // W3 Total Cache
         add_filter('w3tc_minify_js_do_tag_minification', [$this, 'skip_w3tc_tag_minification'], 10, 3);
