@@ -61,6 +61,7 @@ class WecantrackAdmin {
         add_action('wp_ajax_wecantrack_form_response', [$this, 'the_form_response']);
         add_action('wp_ajax_wecantrack_advanced_settings_response', [$this, 'advanced_settings_response']);
         add_action('wp_ajax_wecantrack_script_version_response', [$this, 'script_version_response']);
+        add_action('wp_ajax_wecantrack_tag_check', [$this, 'tag_check_response']);
 
         if (!empty($_GET['page']) && in_array(sanitize_text_field($_GET['page']), ['wecantrack', 'wecantrack-advanced-settings'])) {
             add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
@@ -297,7 +298,28 @@ class WecantrackAdmin {
             return;
         }
 
+        WecantrackDiagnostics::maybe_report_unsupported_optimizers(get_option('wecantrack_api_key'));
+
         require_once WECANTRACK_PATH . '/views/settings.php';
+    }
+
+    /**
+     * AJAX handler for the tag health check: fetches the site's homepage and
+     * verifies the tracking tag visitors actually receive.
+     *
+     * @return void Sends a JSON response.
+     */
+    public function tag_check_response()
+    {
+        $this->wecantrack_permissions->require_admin_access();
+        $this->wecantrack_permissions->nonce_check();
+
+        $api_key = get_option('wecantrack_api_key');
+        if (empty($api_key)) {
+            wp_send_json_error(['error' => esc_html__('Please verify your API key first.', 'wecantrack')], 400);
+        }
+
+        wp_send_json_success(WecantrackDiagnostics::run_tag_check($api_key));
     }
 
     /**

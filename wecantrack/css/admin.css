@@ -580,3 +580,72 @@
     z-index: 99999999;
     display: none;
 }
+
+/* ── Diagnostics cards (optimizer compatibility + tag health check) ── */
+
+.wecantrack-diagnostics-card {
+    background: #f6f7f7;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    box-sizing: border-box;
+    max-width: 720px;
+    margin: 0 0 24px;
+    padding: 18px 22px;
+}
+
+.wecantrack-optimizer-list {
+    margin: 0 0 10px;
+}
+
+.wecantrack-optimizer-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: baseline;
+    flex-wrap: wrap;
+    padding: 7px 0;
+    border-bottom: 1px solid #e5e5e5;
+    margin: 0;
+}
+
+.wecantrack-optimizer-row:last-child {
+    border-bottom: 0;
+}
+
+.wecantrack-optimizer-status {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.wecantrack-optimizer-ok {
+    color: #00753e;
+}
+
+.wecantrack-optimizer-warn {
+    color: #b45309;
+}
+
+.wecantrack-tag-check-result {
+    border-left: 4px solid #8c8f94;
+    background: #fff;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    padding: 10px 14px;
+    font-size: 13px;
+    max-width: 640px;
+}
+
+.wecantrack-tag-check-result.hidden {
+    display: none;
+}
+
+.wecantrack-tag-check-ok {
+    border-left-color: #00a32a;
+}
+
+.wecantrack-tag-check-warn {
+    border-left-color: #dba617;
+}
+
+.wecantrack-tag-check-error {
+    border-left-color: #d63638;
+}

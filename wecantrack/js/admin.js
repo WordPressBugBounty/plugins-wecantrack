@@ -330,4 +330,40 @@ document.addEventListener('DOMContentLoaded', function () {
             })();
         });
     }
+
+    // Tag health check: fetch the homepage server-side and show the verdict.
+    const $tag_check_button = document.getElementById('wecantrack_tag_check_button');
+    if ($tag_check_button) {
+        $tag_check_button.addEventListener('click', function () {
+            const $result = document.getElementById('wecantrack_tag_check_result');
+
+            $tag_check_button.disabled = true;
+            $result.classList.add('hidden');
+            $result.className = 'wecantrack-tag-check-result hidden';
+
+            const formData = new FormData();
+            formData.append('action', 'wecantrack_tag_check');
+            formData.append('wecantrack_form_nonce', $tag_check_button.dataset.nonce);
+
+            fetch(wecantrackParams.ajaxurl, {
+                method: 'POST',
+                body: formData
+            }).then(res => res.json()).then(response => {
+                if (response.success && response.data?.verdict) {
+                    $result.textContent = response.data.message;
+                    $result.classList.add('wecantrack-tag-check-' + (response.data.verdict === 'ok' ? 'ok' : (response.data.verdict === 'error' ? 'error' : 'warn')));
+                } else {
+                    $result.textContent = response.data?.error || wecantrackParams.lang_something_went_wrong;
+                    $result.classList.add('wecantrack-tag-check-error');
+                }
+                $result.classList.remove('hidden');
+            }).catch(() => {
+                $result.textContent = wecantrackParams.lang_something_went_wrong;
+                $result.classList.add('wecantrack-tag-check-error');
+                $result.classList.remove('hidden');
+            }).finally(() => {
+                $tag_check_button.disabled = false;
+            });
+        });
+    }
 });

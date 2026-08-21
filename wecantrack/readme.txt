@@ -2,9 +2,9 @@
 Contributors: wecantrack
 Tags: affiliate conversion tracking, google ads integration, google analytics integration, affiliate dashboard, subid tracking, publisher, analytics, sale attribution, dashboard, google analytics, link, facebook, data studio, we can track, wecantrack, tracking tool
 Requires at least: 4.6
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 5.4.1
+Stable tag: 5.5.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -115,6 +115,11 @@ Not yet. Contact support@wecantrack.com if you need this.
 == Upgrade Notice ==
 
 == Changelog ==
+
+= 5.5.0 - 21st August 2026 =
+ * New "Optimizer compatibility" panel on the settings page: shows which page optimization plugins are active and confirms the tracking script is automatically excluded from their JavaScript optimization
+ * New "Tag health check": fetches your homepage and verifies the tracking tag visitors actually receive, detecting missing tags, tags belonging to a different website in your account, and stale copies of the script bundled by an optimizer
+ * Optimizer plugins we cannot exclude automatically yet, and failed tag checks, are reported to wecantrack (authenticated with your own API key) so support can help proactively and native exclusions can be added in future releases
 
 = 5.4.1 - 21st August 2026 =
  * Exclude the tracking script from SiteGround Optimizer's "Combine JavaScript Files" feature, which downloads external scripts into a combined bundle and would keep serving a stale copy of the tracking script

@@ -2,14 +2,14 @@
 # This file is distributed under the GPLv3.
 msgid ""
 msgstr ""
-"Project-Id-Version: WeCanTrack 5.4.1\n"
+"Project-Id-Version: WeCanTrack 5.5.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wecantrack\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-21T12:35:38+00:00\n"
+"POT-Creation-Date: 2026-08-21T14:27:41+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wecantrack\n"
@@ -221,7 +221,43 @@ msgstr ""
 msgid "Upgrade to the new script"
 msgstr ""
 
-#: views/settings.php:155
+#: views/settings.php:156
+msgid "Optimizer compatibility"
+msgstr ""
+
+#: views/settings.php:158
+msgid "No page optimization plugins detected. Nothing to configure."
+msgstr ""
+
+#: views/settings.php:166
+msgid "✓ wct.js excluded automatically"
+msgstr ""
+
+#: views/settings.php:170
+msgid "⚠ not covered yet, reported to wecantrack"
+msgstr ""
+
+#: views/settings.php:171
+msgid "how to exclude wct.js"
+msgstr ""
+
+#: views/settings.php:178
+msgid "wecantrack excludes its tracking script from JavaScript minification, combination and delaying in supported optimizer plugins. No action needed for supported tools."
+msgstr ""
+
+#: views/settings.php:184
+msgid "Tag health check"
+msgstr ""
+
+#: views/settings.php:185
+msgid "Fetches your homepage and verifies the tracking tag that visitors actually receive."
+msgstr ""
+
+#: views/settings.php:188
+msgid "Check my tag"
+msgstr ""
+
+#: views/settings.php:197
 msgid "If you're experiencing any bugs caused by this plugin, disable the plugin and contact us at support@wecantrack.com"
 msgstr ""
 
@@ -229,76 +265,111 @@ msgstr ""
 msgid "You do not have permission to access this page."
 msgstr ""
 
-#: WecantrackAdmin.php:220
+#: WecantrackAdmin.php:221
 msgid "Invalid script version."
 msgstr ""
 
-#: WecantrackAdmin.php:225
+#: WecantrackAdmin.php:226
+#: WecantrackAdmin.php:319
 msgid "Please verify your API key first."
 msgstr ""
 
-#: WecantrackAdmin.php:248
+#: WecantrackAdmin.php:249
 msgid "The script version change could not be confirmed. Please try again or contact support@wecantrack.com."
 msgstr ""
 
-#: WecantrackAdmin.php:354
+#: WecantrackAdmin.php:376
 msgid "Something went wrong with the request"
 msgstr ""
 
-#: WecantrackAdmin.php:355
+#: WecantrackAdmin.php:377
 msgid "Added at least 1 active network account"
 msgstr ""
 
-#: WecantrackAdmin.php:356
+#: WecantrackAdmin.php:378
 msgid "You have not added at least 1 active network account. To add a network, click here."
 msgstr ""
 
 #. translators: %s: The website URL
-#: WecantrackAdmin.php:358
+#: WecantrackAdmin.php:380
 #, php-format
 msgid "Website %s added"
 msgstr ""
 
 #. translators: %s: The website URL
-#: WecantrackAdmin.php:360
+#: WecantrackAdmin.php:382
 #, php-format
 msgid "You have not added the website %s to our platform. To add the website, click here."
 msgstr ""
 
-#: WecantrackAdmin.php:361
+#: WecantrackAdmin.php:383
 msgid "verified"
 msgstr ""
 
-#: WecantrackAdmin.php:362
+#: WecantrackAdmin.php:384
 msgid "Invalid API Key"
 msgstr ""
 
-#: WecantrackAdmin.php:363
+#: WecantrackAdmin.php:385
 msgid "Invalid Request"
 msgstr ""
 
-#: WecantrackAdmin.php:364
+#: WecantrackAdmin.php:386
 msgid "Valid API Key"
 msgstr ""
 
-#: WecantrackAdmin.php:365
+#: WecantrackAdmin.php:387
 msgid "Your changes have been saved"
 msgstr ""
 
-#: WecantrackAdmin.php:366
+#: WecantrackAdmin.php:388
 msgid "Something went wrong."
 msgstr ""
 
-#: WecantrackAdmin.php:367
+#: WecantrackAdmin.php:389
 msgid "You are now using the new wecantrack script. You can revert to the legacy script anytime under wecantrack > Advanced."
 msgstr ""
 
-#: WecantrackAdmin.php:368
+#: WecantrackAdmin.php:390
 msgid "You are now using the legacy wecantrack script."
 msgstr ""
 
-#: WecantrackAdmin.php:369
+#: WecantrackAdmin.php:391
 msgid "Are you sure you want to switch back to the legacy tracking script?"
+msgstr ""
+
+#: WecantrackDiagnostics.php:139
+msgid "Could not fetch your homepage to inspect the tag. Try again in a minute."
+msgstr ""
+
+#. translators: 1: property id found on the page, 2: property id of this website.
+#: WecantrackDiagnostics.php:180
+#, php-format
+msgid "The tag on your homepage uses property %1$s, which belongs to a different website in your account. Replace it with this site's snippet (%2$s)."
+msgstr ""
+
+#. translators: %s: The property id served by the tag.
+#: WecantrackDiagnostics.php:192
+#, php-format
+msgid "Tag OK. wct.js loads with property %s, matching this site."
+msgstr ""
+
+#: WecantrackDiagnostics.php:206
+msgid "Tag OK. The legacy (v1) inline snippet is present on your homepage."
+msgstr ""
+
+#: WecantrackDiagnostics.php:213
+msgid "A copy of wct.js appears to be inlined into your page instead of loading from our servers. Exclude wct.js from JavaScript optimization and clear your optimizer cache."
+msgstr ""
+
+#. translators: %s: The bundle filename that contains the inlined script.
+#: WecantrackDiagnostics.php:226
+#, php-format
+msgid "wct.js was not found as a script tag, but its code appears inside %s. Exclude wct.js from JavaScript combination and clear the optimizer cache."
+msgstr ""
+
+#: WecantrackDiagnostics.php:235
+msgid "The tracking tag was not found on your homepage. If tracking is enabled, an optimizer or consent tool may be removing it, or your page cache still serves an old version."
 msgstr ""
 
 #. translators: %s is the website URL or identifier.

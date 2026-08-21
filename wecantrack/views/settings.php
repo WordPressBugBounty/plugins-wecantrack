@@ -150,6 +150,48 @@ $wecantrack_masked_key = $wecantrack_api_key
         </div>
         <?php endif; ?>
 
+        <?php if ($wecantrack_connected) : ?>
+            <?php $wecantrack_active_optimizers = WecantrackDiagnostics::active_optimizers(); ?>
+            <div class="wecantrack-diagnostics-card">
+                <h2 class="wecantrack-card-title"><?php echo esc_html__('Optimizer compatibility', 'wecantrack'); ?></h2>
+                <?php if (empty($wecantrack_active_optimizers)) : ?>
+                    <p class="description"><?php echo esc_html__('No page optimization plugins detected. Nothing to configure.', 'wecantrack'); ?></p>
+                <?php else : ?>
+                    <ul class="wecantrack-optimizer-list">
+                        <?php foreach ($wecantrack_active_optimizers as $wecantrack_optimizer) : ?>
+                            <li class="wecantrack-optimizer-row">
+                                <span><?php echo esc_html($wecantrack_optimizer['name']); ?></span>
+                                <?php if ($wecantrack_optimizer['supported']) : ?>
+                                    <span class="wecantrack-optimizer-status wecantrack-optimizer-ok">
+                                        <?php echo esc_html__('✓ wct.js excluded automatically', 'wecantrack'); ?>
+                                    </span>
+                                <?php else : ?>
+                                    <span class="wecantrack-optimizer-status wecantrack-optimizer-warn">
+                                        <?php echo esc_html__('⚠ not covered yet, reported to wecantrack', 'wecantrack'); ?>
+                                        · <a target="_blank" href="https://wecantrack.com/installation/websites/"><?php echo esc_html__('how to exclude wct.js', 'wecantrack'); ?></a>
+                                    </span>
+                                <?php endif; ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <p class="description">
+                        <?php echo esc_html__('wecantrack excludes its tracking script from JavaScript minification, combination and delaying in supported optimizer plugins. No action needed for supported tools.', 'wecantrack'); ?>
+                    </p>
+                <?php endif; ?>
+            </div>
+
+            <div class="wecantrack-diagnostics-card">
+                <h2 class="wecantrack-card-title"><?php echo esc_html__('Tag health check', 'wecantrack'); ?></h2>
+                <p class="description"><?php echo esc_html__('Fetches your homepage and verifies the tracking tag that visitors actually receive.', 'wecantrack'); ?></p>
+                <p>
+                    <button type="button" class="button" id="wecantrack_tag_check_button" data-nonce="<?php echo esc_attr($wecantrack_nonce); ?>">
+                        <?php echo esc_html__('Check my tag', 'wecantrack'); ?>
+                    </button>
+                </p>
+                <div id="wecantrack_tag_check_result" class="wecantrack-tag-check-result hidden"></div>
+            </div>
+        <?php endif; ?>
+
         <p class="wecantrack-footer-note"><b>If you enjoy using our software, could you leave us a rating and a review <a target="_blank" href="https://wordpress.org/support/plugin/wecantrack/reviews/?filter=5#new-post">here</a>? This would really be helpful for us! :)</b></p>
         <p class="wecantrack-footer-note">
             <?php echo esc_html__("If you're experiencing any bugs caused by this plugin, disable the plugin and contact us at support@wecantrack.com", 'wecantrack'); ?>
