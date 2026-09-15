@@ -49,10 +49,11 @@ class WecantrackDiagnostics {
             'flying-press/flying-press.php'         => ['name' => 'FlyingPress', 'supported' => false],
             'breeze/breeze.php'                     => ['name' => 'Breeze', 'supported' => false],
             'hummingbird-performance/wp-hummingbird.php' => ['name' => 'Hummingbird', 'supported' => false],
-            'wp-fastest-cache/wpFastestCache.php'   => ['name' => 'WP Fastest Cache', 'supported' => false],
+            'wp-fastest-cache/wpFastestCache.php'   => ['name' => 'WP Fastest Cache', 'supported' => true],
             'swift-performance-lite/performance.php' => ['name' => 'Swift Performance Lite', 'supported' => false],
             'nitropack/main.php'                    => ['name' => 'NitroPack', 'supported' => false],
-            'jetpack-boost/jetpack-boost.php'       => ['name' => 'Jetpack Boost', 'supported' => false],
+            'jetpack-boost/jetpack-boost.php'       => ['name' => 'Jetpack Boost', 'supported' => true],
+            'debloat/debloat.php'                   => ['name' => 'Debloat', 'supported' => true],
         ];
     }
 

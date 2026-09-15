@@ -3,7 +3,7 @@
  * Plugin Name:       WeCanTrack
  * Plugin URI:        https://wecantrack.com/wordpress
  * Description:       Integrate all your affiliate sales into Google Analytics, Google Ads, Facebook, Data Studio, and more!
- * Version:           5.5.0
+ * Version:           5.5.1
  * Author:            WeCanTrack
  * Author URI:        https://wecantrack.com
  * Requires PHP:      7.4
@@ -17,7 +17,7 @@
 
 if (!defined('ABSPATH')) { die('You are not allowed to call this page directly.'); }
 
-define('WECANTRACK_VERSION', '5.5.0');
+define('WECANTRACK_VERSION', '5.5.1');
 define('WECANTRACK_PLUGIN_NAME', 'wecantrack');
 define('WECANTRACK_PATH', plugin_dir_path(__FILE__));
 define('WECANTRACK_URL', plugin_dir_url(__FILE__));
@@ -221,6 +221,8 @@ if (!function_exists('wecantrack_clear_all_known_caches')) {
      * - Hyper Cache
      * - Simple Cache
      * - Cachify
+     * - Jetpack Boost
+     * - Cachify
      *
      * @return void
      */
@@ -309,6 +311,15 @@ if (!function_exists('wecantrack_clear_all_known_caches')) {
         // Cachify
         if (function_exists('cachify_flush_total_cache')) {
             cachify_flush_total_cache();
+        }
+
+        // Jetpack Boost (page cache; the function only exists while the module is active)
+        if (function_exists('jetpack_boost_delete_cache')) {
+            try {
+                jetpack_boost_delete_cache();
+            } catch (\Throwable $e) {
+                // Never let a third-party purge failure break saving settings.
+            }
         }
     }
 }

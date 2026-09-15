@@ -16,9 +16,13 @@ class WecantrackApp {
 
     // Opt-out attributes for optimizers without usable PHP hooks: Cloudflare Rocket
     // Loader runs at the CDN edge and cannot be detected from PHP, data-no-optimize
-    // is the generic "leave me alone" convention (FlyingPress and others), and
-    // data-nowprocket is WP Rocket's documented tag-level exclusion.
-    const OPTIMIZER_OPT_OUT_ATTRS = ' data-cfasync="false" data-no-optimize="1" data-nowprocket';
+    // is the generic "leave me alone" convention (FlyingPress and others),
+    // data-nowprocket is WP Rocket's documented tag-level exclusion, data-no-minify
+    // and data-wpfc-render="false" are WP Fastest Cache's Combine JS and Render
+    // Blocking JS exclusions (its free version exposes no filters), and
+    // data-jetpack-boost="ignore" keeps Jetpack Boost's Render Blocking JS from
+    // moving the tag to the end of the document.
+    const OPTIMIZER_OPT_OUT_ATTRS = ' data-cfasync="false" data-no-optimize="1" data-nowprocket data-no-minify="1" data-wpfc-render="false" data-jetpack-boost="ignore"';
 
     private $api_key, $drop_referrer_cookie;
 
@@ -200,7 +204,8 @@ class WecantrackApp {
      * Each optimizer has its own matching semantics, so the values differ per hook:
      * - WP Rocket excludes external scripts from minify/combine by host, and
      *   delay/defer exclusions are regex fragments matched against the tag.
-     * - LiteSpeed Cache, WP-Optimize, and Perfmatters match plain URL substrings.
+     * - LiteSpeed Cache, WP-Optimize, Perfmatters, and Debloat match plain URL
+     *   substrings (Debloat against the original script tag HTML).
      * - Autoptimize matches substrings in a comma-separated string.
      * - W3 Total Cache passes each script tag through a boolean filter.
      * - SiteGround Optimizer's "Combine JavaScript Files" parses raw script tags
@@ -210,8 +215,11 @@ class WecantrackApp {
      *   tag, but the external-paths filter (external srcs) and inline-content
      *   filter (the legacy inline snippet) match plain substrings.
      *
-     * Optimizers without usable hooks (Cloudflare Rocket Loader, FlyingPress, ...)
-     * are covered by OPTIMIZER_OPT_OUT_ATTRS on the script tag instead.
+     * Optimizers without usable hooks (Cloudflare Rocket Loader, FlyingPress,
+     * WP Fastest Cache, Jetpack Boost, ...) are covered by OPTIMIZER_OPT_OUT_ATTRS
+     * on the script tag instead. Jetpack Boost's Concatenate JS and WP Fastest
+     * Cache's Combine JS only touch enqueued or same-host scripts, so the raw
+     * external tag is never bundled by them.
      *
      * @return void
      */
@@ -241,6 +249,10 @@ class WecantrackApp {
 
         // W3 Total Cache
         add_filter('w3tc_minify_js_do_tag_minification', [$this, 'skip_w3tc_tag_minification'], 10, 3);
+
+        // Debloat
+        add_filter('debloat/delay_js_excludes', [$this, 'add_script_substring_exclusion']);
+        add_filter('debloat/defer_js_excludes', [$this, 'add_script_substring_exclusion']);
     }
 
     /**
