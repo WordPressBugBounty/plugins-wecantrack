@@ -4,7 +4,7 @@ Tags: affiliate conversion tracking, google ads integration, google analytics in
 Requires at least: 4.6
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 5.5.1
+Stable tag: 5.5.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -115,6 +115,11 @@ Not yet. Contact support@wecantrack.com if you need this.
 == Upgrade Notice ==
 
 == Changelog ==
+
+= 5.5.2 - 1st October 2026 =
+ * Exclude the tracking script from Breeze's "Delay JS" and "Defer JS" features, which would otherwise delay tracking until the visitor interacts with the page
+ * Fix Breeze's cache not being purged when settings are saved
+ * Breeze now shows as supported in the Optimizer compatibility panel
 
 = 5.5.1 - 15th September 2026 =
  * Exclude the tracking script from WP Fastest Cache's "Combine JS" and "Render Blocking JS" features and from Jetpack Boost's "Defer Non-Essential JavaScript" feature via tag-level opt-out attributes

@@ -204,8 +204,8 @@ class WecantrackApp {
      * Each optimizer has its own matching semantics, so the values differ per hook:
      * - WP Rocket excludes external scripts from minify/combine by host, and
      *   delay/defer exclusions are regex fragments matched against the tag.
-     * - LiteSpeed Cache, WP-Optimize, Perfmatters, and Debloat match plain URL
-     *   substrings (Debloat against the original script tag HTML).
+     * - LiteSpeed Cache, WP-Optimize, Perfmatters, Debloat, and Breeze match plain
+     *   substrings (Debloat and Breeze against the original script tag HTML).
      * - Autoptimize matches substrings in a comma-separated string.
      * - W3 Total Cache passes each script tag through a boolean filter.
      * - SiteGround Optimizer's "Combine JavaScript Files" parses raw script tags
@@ -219,7 +219,8 @@ class WecantrackApp {
      * WP Fastest Cache, Jetpack Boost, ...) are covered by OPTIMIZER_OPT_OUT_ATTRS
      * on the script tag instead. Jetpack Boost's Concatenate JS and WP Fastest
      * Cache's Combine JS only touch enqueued or same-host scripts, so the raw
-     * external tag is never bundled by them.
+     * external tag is never bundled by them. The same holds for Breeze's Group JS,
+     * which only aggregates scripts that resolve to a local file.
      *
      * @return void
      */
@@ -253,6 +254,10 @@ class WecantrackApp {
         // Debloat
         add_filter('debloat/delay_js_excludes', [$this, 'add_script_substring_exclusion']);
         add_filter('debloat/defer_js_excludes', [$this, 'add_script_substring_exclusion']);
+
+        // Breeze: its Delay JS / Defer JS pass skips any tag matched by this list
+        // (the filter name's "gnore" typo is Breeze's own)
+        add_filter('default_scripts_gnore_from_delay', [$this, 'add_script_substring_exclusion']);
     }
 
     /**

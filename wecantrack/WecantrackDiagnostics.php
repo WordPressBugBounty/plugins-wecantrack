@@ -47,7 +47,7 @@ class WecantrackDiagnostics {
             'wp-optimize/wp-optimize.php'           => ['name' => 'WP-Optimize', 'supported' => true],
             'perfmatters/perfmatters.php'           => ['name' => 'Perfmatters', 'supported' => true],
             'flying-press/flying-press.php'         => ['name' => 'FlyingPress', 'supported' => false],
-            'breeze/breeze.php'                     => ['name' => 'Breeze', 'supported' => false],
+            'breeze/breeze.php'                     => ['name' => 'Breeze', 'supported' => true],
             'hummingbird-performance/wp-hummingbird.php' => ['name' => 'Hummingbird', 'supported' => false],
             'wp-fastest-cache/wpFastestCache.php'   => ['name' => 'WP Fastest Cache', 'supported' => true],
             'swift-performance-lite/performance.php' => ['name' => 'Swift Performance Lite', 'supported' => false],
