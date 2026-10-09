@@ -2,14 +2,14 @@
 # This file is distributed under the GPLv3.
 msgid ""
 msgstr ""
-"Project-Id-Version: WeCanTrack 5.5.2\n"
+"Project-Id-Version: WeCanTrack 5.5.3\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wecantrack\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-01T13:23:13+00:00\n"
+"POT-Creation-Date: 2026-10-09T13:51:51+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wecantrack\n"
@@ -338,37 +338,41 @@ msgstr ""
 msgid "Are you sure you want to switch back to the legacy tracking script?"
 msgstr ""
 
-#: WecantrackDiagnostics.php:140
+#: WecantrackDiagnostics.php:141
 msgid "Could not fetch your homepage to inspect the tag. Try again in a minute."
 msgstr ""
 
 #. translators: 1: property id found on the page, 2: property id of this website.
-#: WecantrackDiagnostics.php:181
+#: WecantrackDiagnostics.php:182
 #, php-format
 msgid "The tag on your homepage uses property %1$s, which belongs to a different website in your account. Replace it with this site's snippet (%2$s)."
 msgstr ""
 
 #. translators: %s: The property id served by the tag.
-#: WecantrackDiagnostics.php:193
+#: WecantrackDiagnostics.php:194
 #, php-format
 msgid "Tag OK. wct.js loads with property %s, matching this site."
 msgstr ""
 
-#: WecantrackDiagnostics.php:207
+#: WecantrackDiagnostics.php:208
 msgid "Tag OK. The legacy (v1) inline snippet is present on your homepage."
 msgstr ""
 
-#: WecantrackDiagnostics.php:214
+#: WecantrackDiagnostics.php:220
+msgid "Your homepage loads the legacy (v1) tracking snippet, but this site is set up for the new tag, which is missing. Remove the manually added snippet from your theme or header-scripts plugin, make sure tracking is enabled in this plugin, and clear your page cache."
+msgstr ""
+
+#: WecantrackDiagnostics.php:227
 msgid "A copy of wct.js appears to be inlined into your page instead of loading from our servers. Exclude wct.js from JavaScript optimization and clear your optimizer cache."
 msgstr ""
 
 #. translators: %s: The bundle filename that contains the inlined script.
-#: WecantrackDiagnostics.php:227
+#: WecantrackDiagnostics.php:240
 #, php-format
 msgid "wct.js was not found as a script tag, but its code appears inside %s. Exclude wct.js from JavaScript combination and clear the optimizer cache."
 msgstr ""
 
-#: WecantrackDiagnostics.php:236
+#: WecantrackDiagnostics.php:249
 msgid "The tracking tag was not found on your homepage. If tracking is enabled, an optimizer or consent tool may be removing it, or your page cache still serves an old version."
 msgstr ""
 

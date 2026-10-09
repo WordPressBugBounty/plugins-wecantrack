@@ -25,6 +25,7 @@ class WecantrackDiagnostics {
     const VERDICT_CACHED_COPY = 'cached_copy';
     const VERDICT_WRONG_PROPERTY = 'wrong_property';
     const VERDICT_TAG_MISSING = 'tag_missing';
+    const VERDICT_LEGACY_SNIPPET = 'legacy_snippet';
 
     const REPORT_THROTTLE_TRANSIENT = 'wecantrack_optimizer_reported';
     const REPORT_THROTTLE_S = 30 * 86400;
@@ -46,7 +47,7 @@ class WecantrackDiagnostics {
             'w3-total-cache/w3-total-cache.php'     => ['name' => 'W3 Total Cache', 'supported' => true],
             'wp-optimize/wp-optimize.php'           => ['name' => 'WP-Optimize', 'supported' => true],
             'perfmatters/perfmatters.php'           => ['name' => 'Perfmatters', 'supported' => true],
-            'flying-press/flying-press.php'         => ['name' => 'FlyingPress', 'supported' => false],
+            'flying-press/flying-press.php'         => ['name' => 'FlyingPress', 'supported' => true],
             'breeze/breeze.php'                     => ['name' => 'Breeze', 'supported' => true],
             'hummingbird-performance/wp-hummingbird.php' => ['name' => 'Hummingbird', 'supported' => false],
             'wp-fastest-cache/wpFastestCache.php'   => ['name' => 'WP Fastest Cache', 'supported' => true],
@@ -206,6 +207,18 @@ class WecantrackDiagnostics {
                     'verdict' => self::VERDICT_OK,
                     'message' => esc_html__('Tag OK. The legacy (v1) inline snippet is present on your homepage.', 'wecantrack'),
                     'details' => [],
+                ];
+            }
+
+            // The v1 loader (inline JS assigning the wct.js URL to a script
+            // element) without the plugin's v2 tag: usually pasted into the
+            // theme by hand, or a page cached before the switch to v2. An
+            // inlined copy of wct.js itself carries the anti-bot token (_wct.st).
+            if (preg_match('~\.src\s*=\s*["\'][^"\']*wct\.js~i', $html) && strpos($html, '_wct.st=') === false) {
+                return [
+                    'verdict' => self::VERDICT_LEGACY_SNIPPET,
+                    'message' => esc_html__('Your homepage loads the legacy (v1) tracking snippet, but this site is set up for the new tag, which is missing. Remove the manually added snippet from your theme or header-scripts plugin, make sure tracking is enabled in this plugin, and clear your page cache.', 'wecantrack'),
+                    'details' => ['location' => 'inline'],
                 ];
             }
 

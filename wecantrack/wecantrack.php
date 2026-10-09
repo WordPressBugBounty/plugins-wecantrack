@@ -3,7 +3,7 @@
  * Plugin Name:       WeCanTrack
  * Plugin URI:        https://wecantrack.com/wordpress
  * Description:       Integrate all your affiliate sales into Google Analytics, Google Ads, Facebook, Data Studio, and more!
- * Version:           5.5.2
+ * Version:           5.5.3
  * Author:            WeCanTrack
  * Author URI:        https://wecantrack.com
  * Requires PHP:      7.4
@@ -17,7 +17,7 @@
 
 if (!defined('ABSPATH')) { die('You are not allowed to call this page directly.'); }
 
-define('WECANTRACK_VERSION', '5.5.2');
+define('WECANTRACK_VERSION', '5.5.3');
 define('WECANTRACK_PLUGIN_NAME', 'wecantrack');
 define('WECANTRACK_PATH', plugin_dir_path(__FILE__));
 define('WECANTRACK_URL', plugin_dir_url(__FILE__));
@@ -222,6 +222,7 @@ if (!function_exists('wecantrack_clear_all_known_caches')) {
      * - Simple Cache
      * - Cachify
      * - Jetpack Boost
+     * - FlyingPress
      *
      * @return void
      */
@@ -314,6 +315,19 @@ if (!function_exists('wecantrack_clear_all_known_caches')) {
         if (function_exists('jetpack_boost_delete_cache')) {
             try {
                 jetpack_boost_delete_cache();
+            } catch (\Throwable $e) {
+                // Never let a third-party purge failure break saving settings.
+            }
+        }
+
+        // FlyingPress (cached HTML pages; the method was renamed in 5.x)
+        if (class_exists('FlyingPress\Purge')) {
+            try {
+                if (method_exists('FlyingPress\Purge', 'purge_pages')) {
+                    \FlyingPress\Purge::purge_pages();
+                } elseif (method_exists('FlyingPress\Purge', 'purge_cached_pages')) {
+                    \FlyingPress\Purge::purge_cached_pages();
+                }
             } catch (\Throwable $e) {
                 // Never let a third-party purge failure break saving settings.
             }

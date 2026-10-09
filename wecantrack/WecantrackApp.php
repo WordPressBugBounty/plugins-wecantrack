@@ -214,8 +214,14 @@ class WecantrackApp {
      *   ignores the opt-out attributes. Its handle-based filter cannot match a raw
      *   tag, but the external-paths filter (external srcs) and inline-content
      *   filter (the legacy inline snippet) match plain substrings.
+     * - FlyingPress 4.x matches plain substrings via its defer/delay filters. 5.x
+     *   dropped those filters and its delay pass only reads the js_delay_excludes
+     *   setting (substring match against the full tag), so that list is extended
+     *   in memory per front-end request; see exclude_from_flying_press_delay().
+     *   Its minify and third-party self-hosting only touch local files and a
+     *   fixed list of public CDNs, so the external tag is never rewritten.
      *
-     * Optimizers without usable hooks (Cloudflare Rocket Loader, FlyingPress,
+     * Optimizers without usable hooks (Cloudflare Rocket Loader,
      * WP Fastest Cache, Jetpack Boost, ...) are covered by OPTIMIZER_OPT_OUT_ATTRS
      * on the script tag instead. Jetpack Boost's Concatenate JS and WP Fastest
      * Cache's Combine JS only touch enqueued or same-host scripts, so the raw
@@ -258,6 +264,41 @@ class WecantrackApp {
         // Breeze: its Delay JS / Defer JS pass skips any tag matched by this list
         // (the filter name's "gnore" typo is Breeze's own)
         add_filter('default_scripts_gnore_from_delay', [$this, 'add_script_substring_exclusion']);
+
+        // FlyingPress 4.x
+        add_filter('flying_press_exclude_from_defer:js', [$this, 'add_script_substring_exclusion']);
+        add_filter('flying_press_exclude_from_delay:js', [$this, 'add_script_substring_exclusion']);
+
+        // FlyingPress 5.x: front-end only, so REST/admin reads of the config (and
+        // a later settings save) never see or persist the added keyword
+        add_action('template_redirect', [$this, 'exclude_from_flying_press_delay']);
+    }
+
+    /**
+     * Adds wct.js to FlyingPress 5.x's in-memory js_delay_excludes setting.
+     *
+     * FlyingPress loads its config into FlyingPress\Config::$config when its
+     * plugin file is included (before this plugin loads, so an option filter
+     * would be too late) and reads it again when its output buffer is
+     * processed, which is when Delay JavaScript runs.
+     *
+     * @return void
+     */
+    public function exclude_from_flying_press_delay() {
+        if (!class_exists('FlyingPress\Config') || !property_exists('FlyingPress\Config', 'config')) {
+            return;
+        }
+
+        $config = \FlyingPress\Config::$config;
+        if (!is_array($config) || !array_key_exists('js_delay_excludes', $config)) {
+            return;
+        }
+
+        $excludes = self::ensure_exclusion_array($config['js_delay_excludes']);
+        if (!in_array(self::WCT_SCRIPT_FILENAME, $excludes, true)) {
+            $excludes[] = self::WCT_SCRIPT_FILENAME;
+            \FlyingPress\Config::$config['js_delay_excludes'] = $excludes;
+        }
     }
 
     /**
