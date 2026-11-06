@@ -3,7 +3,7 @@
  * Plugin Name:       WeCanTrack
  * Plugin URI:        https://wecantrack.com/wordpress
  * Description:       Integrate all your affiliate sales into Google Analytics, Google Ads, Facebook, Data Studio, and more!
- * Version:           5.5.3
+ * Version:           5.5.4
  * Author:            WeCanTrack
  * Author URI:        https://wecantrack.com
  * Requires PHP:      7.4
@@ -17,7 +17,7 @@
 
 if (!defined('ABSPATH')) { die('You are not allowed to call this page directly.'); }
 
-define('WECANTRACK_VERSION', '5.5.3');
+define('WECANTRACK_VERSION', '5.5.4');
 define('WECANTRACK_PLUGIN_NAME', 'wecantrack');
 define('WECANTRACK_PATH', plugin_dir_path(__FILE__));
 define('WECANTRACK_URL', plugin_dir_url(__FILE__));
@@ -223,6 +223,7 @@ if (!function_exists('wecantrack_clear_all_known_caches')) {
      * - Cachify
      * - Jetpack Boost
      * - FlyingPress
+     * - NitroPack
      *
      * @return void
      */
@@ -328,6 +329,17 @@ if (!function_exists('wecantrack_clear_all_known_caches')) {
                 } elseif (method_exists('FlyingPress\Purge', 'purge_cached_pages')) {
                     \FlyingPress\Purge::purge_cached_pages();
                 }
+            } catch (\Throwable $e) {
+                // Never let a third-party purge failure break saving settings.
+            }
+        }
+
+        // NitroPack (local page cache and the optimized copies held by its cloud
+        // service; this is what its own "Purge Entire Cache" button calls, and it
+        // is a no-op while the site is not connected)
+        if (function_exists('nitropack_sdk_purge')) {
+            try {
+                nitropack_sdk_purge(null, null, 'wecantrack settings saved');
             } catch (\Throwable $e) {
                 // Never let a third-party purge failure break saving settings.
             }

@@ -22,7 +22,7 @@ class WecantrackApp {
     // Blocking JS exclusions (its free version exposes no filters), and
     // data-jetpack-boost="ignore" keeps Jetpack Boost's Render Blocking JS from
     // moving the tag to the end of the document.
-    const OPTIMIZER_OPT_OUT_ATTRS = ' data-cfasync="false" data-no-optimize="1" data-nowprocket data-no-minify="1" data-wpfc-render="false" data-jetpack-boost="ignore"';
+    const OPTIMIZER_OPT_OUT_ATTRS = ' data-cfasync="false" data-no-optimize="1" data-nowprocket data-no-minify="1" data-wpfc-render="false" data-jetpack-boost="ignore" nitro-exclude';
 
     private $api_key, $drop_referrer_cookie;
 
@@ -222,11 +222,15 @@ class WecantrackApp {
      *   fixed list of public CDNs, so the external tag is never rewritten.
      *
      * Optimizers without usable hooks (Cloudflare Rocket Loader,
-     * WP Fastest Cache, Jetpack Boost, ...) are covered by OPTIMIZER_OPT_OUT_ATTRS
-     * on the script tag instead. Jetpack Boost's Concatenate JS and WP Fastest
-     * Cache's Combine JS only touch enqueued or same-host scripts, so the raw
-     * external tag is never bundled by them. The same holds for Breeze's Group JS,
-     * which only aggregates scripts that resolve to a local file.
+     * WP Fastest Cache, Jetpack Boost, NitroPack, ...) are covered by
+     * OPTIMIZER_OPT_OUT_ATTRS on the script tag instead. Jetpack Boost's
+     * Concatenate JS and WP Fastest Cache's Combine JS only touch enqueued or
+     * same-host scripts, so the raw external tag is never bundled by them. The
+     * same holds for Breeze's Group JS, which only aggregates scripts that
+     * resolve to a local file. NitroPack optimizes the page in its cloud service
+     * (the WordPress plugin only ships the HTML and serves the result), so it has
+     * no PHP exclusion filters; its `nitro-exclude` attribute, which NitroPack's
+     * plugin puts on its own scripts, skips all optimization for the tag.
      *
      * @return void
      */

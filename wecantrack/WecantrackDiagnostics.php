@@ -52,7 +52,7 @@ class WecantrackDiagnostics {
             'hummingbird-performance/wp-hummingbird.php' => ['name' => 'Hummingbird', 'supported' => false],
             'wp-fastest-cache/wpFastestCache.php'   => ['name' => 'WP Fastest Cache', 'supported' => true],
             'swift-performance-lite/performance.php' => ['name' => 'Swift Performance Lite', 'supported' => false],
-            'nitropack/main.php'                    => ['name' => 'NitroPack', 'supported' => false],
+            'nitropack/main.php'                    => ['name' => 'NitroPack', 'supported' => true],
             'jetpack-boost/jetpack-boost.php'       => ['name' => 'Jetpack Boost', 'supported' => true],
             'debloat/debloat.php'                   => ['name' => 'Debloat', 'supported' => true],
         ];

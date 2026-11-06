@@ -4,7 +4,7 @@ Tags: affiliate conversion tracking, google ads integration, google analytics in
 Requires at least: 4.6
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 5.5.3
+Stable tag: 5.5.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -115,6 +115,11 @@ Not yet. Contact support@wecantrack.com if you need this.
 == Upgrade Notice ==
 
 == Changelog ==
+
+= 5.5.4 - 6th November 2026 =
+ * Exclude the tracking script from NitroPack's JavaScript optimization (delaying, deferring, minifying and combining), which would otherwise hold tracking back or serve a stale copy of the script
+ * Purge NitroPack's cache when settings are saved
+ * NitroPack now shows as supported in the Optimizer compatibility panel
 
 = 5.5.3 - 9th October 2026 =
  * Exclude the tracking script from FlyingPress's "Delay JavaScript" feature, which would otherwise hold tracking back until the browser is idle or the visitor interacts with the page
